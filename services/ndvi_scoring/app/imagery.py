@@ -41,13 +41,20 @@ class SentinelHubNdviProvider:
 
     def __init__(self, settings: Settings):
         self.settings = settings
-        self.config = SHConfig()
+        # Do not load or create sentinelhub-py's per-user config.toml. Service
+        # deployments receive credentials through environment variables instead.
+        self.config = SHConfig(use_defaults=True)
         self.config.sh_client_id = settings.copernicus_client_id
         self.config.sh_client_secret = settings.copernicus_client_secret
         self.config.sh_token_url = (
             "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
         )
         self.config.sh_base_url = "https://sh.dataspace.copernicus.eu"
+        # The built-in collection targets Sentinel Hub's commercial endpoint;
+        # derive a CDSE-specific collection so request URLs follow this config.
+        self.data_collection = DataCollection.SENTINEL2_L2A.define_from(
+            "CDSE_SENTINEL2_L2A", service_url=self.config.sh_base_url
+        )
 
     def mean_ndvi(
         self, latitude: float, longitude: float, start_date: date, end_date: date
@@ -68,7 +75,7 @@ class SentinelHubNdviProvider:
             evalscript=NDVI_EVALSCRIPT,
             input_data=[
                 SentinelHubRequest.input_data(
-                    data_collection=DataCollection.SENTINEL2_L2A,
+                    data_collection=self.data_collection,
                     time_interval=(start_date.isoformat(), end_date.isoformat()),
                     maxcc=self.settings.max_cloud_coverage,
                 )

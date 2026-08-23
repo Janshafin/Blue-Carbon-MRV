@@ -1,6 +1,8 @@
 from fastapi.testclient import TestClient
 
+from app.imagery import SentinelHubNdviProvider
 from app.main import create_app
+from app.settings import Settings
 
 
 class FixedNdviProvider:
@@ -58,6 +60,13 @@ def test_openapi_publishes_the_provisional_contract():
         "photo_metadata",
     }
     assert "/score-submission" in schema["paths"]
+
+
+def test_sentinel_provider_targets_copernicus_data_space():
+    provider = SentinelHubNdviProvider(Settings("test-client", "test-secret"))
+
+    assert provider.config.sh_base_url == "https://sh.dataspace.copernicus.eu"
+    assert provider.data_collection.value.service_url == provider.config.sh_base_url
 
 
 def test_flags_no_vegetation_change_as_suspicious():
