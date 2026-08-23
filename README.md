@@ -69,6 +69,10 @@ npx hardhat test
 npx hardhat ignition deploy ignition/modules/BlueCarbonCredit.ts --network sepolia --verify
 ```
 
+### Phase 2: NDVI plausibility service
+
+The FastAPI service for Sentinel-2 NDVI and photo-EXIF checks lives in [services/ndvi_scoring](services/ndvi_scoring/README.md). Its provisional request/response contract is available through FastAPI OpenAPI at `/docs` and `/openapi.json` when running locally.
+
 ### Security Scan
 ```bash
 pip3 install slither-analyzer solc-select
