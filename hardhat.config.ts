@@ -1,4 +1,4 @@
-import { defineConfig } from "hardhat/config";
+import { configVariable, defineConfig } from "hardhat/config";
 import hardhatToolboxViem from "@nomicfoundation/hardhat-toolbox-viem";
 import "dotenv/config";
 
@@ -20,7 +20,9 @@ export default defineConfig({
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
   },
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY || "",
+  verify: {
+    etherscan: {
+      apiKey: configVariable("ETHERSCAN_API_KEY"),
+    },
   },
 });
