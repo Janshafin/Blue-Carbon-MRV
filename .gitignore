@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+dev-dist/
+
+# Cloned repo (if present inside workspace)
+Blue-Carbon-MRV/
+
+# Environment files (keep .env but ignore local overrides)
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# TypeScript build info
+*.tsbuildinfo
+
+# PWA generated files (regenerated on build)
+public/sw.js
+public/workbox-*.js
