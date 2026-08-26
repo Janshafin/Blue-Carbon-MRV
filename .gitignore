@@ -55,3 +55,7 @@ Thumbs.db
 coverage/
 coverage.json
 gas-report.txt
+
+# Web App
+dist/
+dev-dist/
