@@ -1,10 +1,15 @@
+
 import os
 import uuid
 
-from supabase import create_client, Client
+from dotenv import load_dotenv
+from supabase import Client, create_client
 
 from backend.app.schemas.submissions import CreateSubmissionRequest
 from backend.app.services.core_engine_adapter import CoreEngineAdapter
+
+
+load_dotenv()
 
 
 class SubmissionService:
@@ -25,10 +30,10 @@ class SubmissionService:
         )
 
     async def create_submission(
-    self,
-    submission: CreateSubmissionRequest,
-    evidence_uri: str | None = None,
-) -> dict:
+        self,
+        submission: CreateSubmissionRequest,
+        evidence_uri: str | None = None,
+    ) -> dict:
 
         scoring_result = await self.core_engine.score_submission(
             submission
@@ -46,9 +51,15 @@ class SubmissionService:
             "id": submission_id,
             "latitude": submission.latitude,
             "longitude": submission.longitude,
-            "claimed_planting_date": submission.claimed_planting_date.isoformat(),
-            "photo_gps_latitude": submission.photo_metadata.gps_latitude,
-            "photo_gps_longitude": submission.photo_metadata.gps_longitude,
+            "claimed_planting_date": (
+                submission.claimed_planting_date.isoformat()
+            ),
+            "photo_gps_latitude": (
+                submission.photo_metadata.gps_latitude
+            ),
+            "photo_gps_longitude": (
+                submission.photo_metadata.gps_longitude
+            ),
             "photo_captured_at": (
                 submission.photo_metadata.captured_at.isoformat()
                 if submission.photo_metadata.captured_at
@@ -62,7 +73,7 @@ class SubmissionService:
             "status": "SCORED",
             "eligible_for_provisional": eligible_for_provisional,
             "manual_review_required": not eligible_for_provisional,
-	    "evidence_uri": evidence_uri,
+            "evidence_uri": evidence_uri,
         }
 
         self.supabase.table("submissions").insert(record).execute()
