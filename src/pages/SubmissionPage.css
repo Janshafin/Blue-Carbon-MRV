@@ -7,38 +7,39 @@
 
 /* ─── Design Tokens ─────────────────────────────────────────── */
 :root {
-  /* Pulled from the image */
-  --sp-bg-deep:     #0d1f1a;
-  --sp-bg-mid:      #112620;
-  --sp-teal-bright: #52e3c2;
-  --sp-teal:        #3abfa3;
-  --sp-teal-dim:    #2a8c7a;
-  --sp-teal-muted:  #1d6355;
+  /* Cosmic Earth & Atmosphere Palette */
+  --sp-bg-deep:     #050811;
+  --sp-bg-mid:      #0b1326;
+  --sp-teal-bright: #38bdf8;
+  --sp-teal:        #0ea5e9;
+  --sp-teal-dim:    #0284c7;
+  --sp-teal-muted:  #0369a1;
+  --sp-amber:       #fbbf24;
 
   /* Glass panels */
-  --sp-glass-bg:     rgba(13, 31, 26, 0.55);
-  --sp-glass-bg-lt:  rgba(20, 48, 39, 0.6);
-  --sp-glass-border: rgba(82, 227, 194, 0.12);
-  --sp-glass-border-strong: rgba(82, 227, 194, 0.25);
+  --sp-glass-bg:     rgba(8, 16, 32, 0.62);
+  --sp-glass-bg-lt:  rgba(15, 27, 52, 0.68);
+  --sp-glass-border: rgba(56, 189, 248, 0.15);
+  --sp-glass-border-strong: rgba(56, 189, 248, 0.32);
 
   /* Text */
-  --sp-text-primary:  #e8f5f2;
-  --sp-text-secondary:#a8cec8;
-  --sp-text-muted:    #6b9e96;
-  --sp-text-dim:      #3d7068;
+  --sp-text-primary:  #f0f9ff;
+  --sp-text-secondary:#bae6fd;
+  --sp-text-muted:    #7dd3fc;
+  --sp-text-dim:      #3882a5;
 
   /* Input */
-  --sp-input-bg:     rgba(10, 24, 20, 0.7);
-  --sp-input-border: rgba(82, 227, 194, 0.18);
-  --sp-input-focus:  rgba(82, 227, 194, 0.45);
+  --sp-input-bg:     rgba(6, 14, 28, 0.75);
+  --sp-input-border: rgba(56, 189, 248, 0.2);
+  --sp-input-focus:  rgba(56, 189, 248, 0.45);
 
   /* Status */
   --sp-error:        #ff6b6b;
-  --sp-error-bg:     rgba(255, 107, 107, 0.1);
-  --sp-error-border: rgba(255, 107, 107, 0.25);
-  --sp-success:      #52e3c2;
-  --sp-success-bg:   rgba(82, 227, 194, 0.08);
-  --sp-success-border: rgba(82, 227, 194, 0.2);
+  --sp-error-bg:     rgba(255, 107, 107, 0.12);
+  --sp-error-border: rgba(255, 107, 107, 0.3);
+  --sp-success:      #38bdf8;
+  --sp-success-bg:   rgba(56, 189, 248, 0.08);
+  --sp-success-border: rgba(56, 189, 248, 0.25);
 
   --sp-radius:    6px;
   --sp-radius-md: 10px;
@@ -62,35 +63,34 @@
 /* ─── Global parallax background ────────────────────────────── */
 .sp-global-bg {
   position: fixed;
-  inset: -80px;
+  inset: -70px;
   z-index: 0;
-  background-image: url('/mangrove-hero-bg.jpg');
+  background-image: url('/earth-bg.jpg');
   background-size: cover;
-  background-position: center center;
+  background-position: center 25%;
   will-change: transform;
-  animation: sp-bg-drift 12s ease-in-out infinite alternate;
+  animation: sp-bg-drift 14s ease-in-out infinite alternate;
   pointer-events: none;
 }
 
-/* Dark teal overlay — image visible but text is readable */
+/* Cosmic gradient overlay — keeps sunrise & Earth vivid while ensuring high legibility */
 .sp-global-bg::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    160deg,
-    rgba(8, 22, 18, 0.72) 0%,
-    rgba(10, 28, 22, 0.65) 40%,
-    rgba(12, 32, 26, 0.70) 100%
+  background: radial-gradient(
+    ellipse at 50% 15%,
+    rgba(5, 10, 20, 0.25) 0%,
+    rgba(5, 8, 17, 0.70) 55%,
+    rgba(3, 6, 14, 0.85) 100%
   );
 }
 
 @keyframes sp-bg-drift {
-  0%   { transform: scale(1.08) translate(0px,   0px);   }
-  25%  { transform: scale(1.13) translate(-28px, -14px); }
-  50%  { transform: scale(1.09) translate(20px, -24px);  }
-  75%  { transform: scale(1.14) translate(-16px, 18px);  }
-  100% { transform: scale(1.08) translate(24px, -10px);  }
+  0%   { transform: scale(1.06) translate(0px,   0px);   }
+  30%  { transform: scale(1.11) translate(-20px, -10px); }
+  60%  { transform: scale(1.08) translate(15px, -18px);  }
+  100% { transform: scale(1.12) translate(18px, -6px);   }
 }
 
 /* Everything above the bg */

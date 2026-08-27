@@ -652,10 +652,10 @@ export default function SubmissionPage() {
       <div className="sp-nav__inner">
         <a href="/" className="sp-nav__logo">
           <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="14" stroke="#52e3c2" strokeWidth="1.5" />
-            <path d="M16 7c0 0-5 5-5 9s2.5 7 5 9c2.5-2 5-5 5-9s-5-9-5-9z" fill="#52e3c2" opacity="0.35" />
-            <path d="M11 19c2.5-1.5 4-4 5-7" stroke="#52e3c2" strokeWidth="1.5" strokeLinecap="round" />
-            <path d="M21 19c-2.5-1.5-4-4-5-7" stroke="#52e3c2" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx="16" cy="16" r="14" stroke="#38bdf8" strokeWidth="1.5" />
+            <path d="M16 7c0 0-5 5-5 9s2.5 7 5 9c2.5-2 5-5 5-9s-5-9-5-9z" fill="#38bdf8" opacity="0.35" />
+            <path d="M11 19c2.5-1.5 4-4 5-7" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M21 19c-2.5-1.5-4-4-5-7" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
           <span className="sp-nav__brand">Blue Carbon MRV</span>
         </a>
