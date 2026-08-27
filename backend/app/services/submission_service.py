@@ -25,9 +25,10 @@ class SubmissionService:
         )
 
     async def create_submission(
-        self,
-        submission: CreateSubmissionRequest,
-    ) -> dict:
+    self,
+    submission: CreateSubmissionRequest,
+    evidence_uri: str | None = None,
+) -> dict:
 
         scoring_result = await self.core_engine.score_submission(
             submission
@@ -61,7 +62,7 @@ class SubmissionService:
             "status": "SCORED",
             "eligible_for_provisional": eligible_for_provisional,
             "manual_review_required": not eligible_for_provisional,
-	    "evidence_uri": None,
+	    "evidence_uri": evidence_uri,
         }
 
         self.supabase.table("submissions").insert(record).execute()
