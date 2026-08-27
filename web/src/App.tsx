@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import heroImage from "./assets/hero-mangrove.jpg";
+import NCCRRegistryConsole from "./NCCRRegistryConsole";
 
 type IconName = "pin" | "satellite" | "lock" | "check" | "shield" | "ledger";
 
@@ -59,7 +60,7 @@ const steps: Array<{ number: string; title: string; description: string; icon: I
   { number: "04", title: "Release with confidence", description: "A clean re-verification and human approval make the credit transferable.", icon: "check" },
 ];
 
-export default function App() {
+function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [walletConnected, setWalletConnected] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -157,7 +158,7 @@ export default function App() {
             <div className="section-heading"><p className="eyebrow">Built around accountable roles</p><h2>Useful in the field. Defensible at review.</h2></div>
             <div className="audience-grid">
               <article className="audience-card" id="for-ngos"><Icon name="pin" /><p className="card-kicker">For NGOs &amp; field teams</p><h3>Document restoration once, then follow it through.</h3><p>Capture evidence at the site, submit a project, and follow its review state from first score to released credit.</p><a className="ghost-button compact" href="#how-it-works">Project workflow <span aria-hidden="true">→</span></a></article>
-              <article className="audience-card" id="for-verifiers"><Icon name="shield" /><p className="card-kicker">For verifiers &amp; auditors</p><h3>Review evidence with a public, enforceable trail.</h3><p>Assess scoring context, open a dispute when evidence conflicts, and approve lifecycle actions with role-gated controls.</p><a className="ghost-button compact" href="#public-registry">Registry controls <span aria-hidden="true">→</span></a></article>
+              <article className="audience-card" id="for-verifiers"><Icon name="shield" /><p className="card-kicker">For verifiers &amp; auditors</p><h3>Review evidence with a public, enforceable trail.</h3><p>Assess scoring context, open a dispute when evidence conflicts, and approve lifecycle actions with role-gated controls.</p><a className="ghost-button compact" href="/dashboard">Open NCCR dashboard <span aria-hidden="true">→</span></a></article>
             </div>
           </div>
         </section>
@@ -177,4 +178,8 @@ export default function App() {
       </footer>
     </div>
   );
+}
+
+export default function App() {
+  return window.location.pathname.startsWith("/public") ? <LandingPage /> : <NCCRRegistryConsole />;
 }
