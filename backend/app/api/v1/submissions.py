@@ -78,4 +78,22 @@ async def create_submission(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=str(error),
         ) from error
+@router.get("/count")
+async def get_submission_count():
+    try:
+        result = (
+            submission_service.supabase
+            .table("submissions")
+            .select("id", count="exact")
+            .execute()
+        )
 
+        return {
+            "count": result.count or 0
+        }
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get submission count: {error}",
+        ) from error
