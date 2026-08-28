@@ -1,6 +1,7 @@
 import os
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from .imagery import ImageryProvider, SentinelHubNdviProvider
 from .models import ScoreSubmissionRequest, ScoreSubmissionResponse
@@ -27,6 +28,15 @@ def create_app(provider: ImageryProvider | None = None) -> FastAPI:
             "Scores a blue-carbon planting submission using Sentinel-2 NDVI "
             "change and photo-EXIF consistency checks."
         ),
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "https://blue-carbon-mrv-web.vercel.app",
+            "http://localhost:5173",
+        ],
+        allow_methods=["POST", "OPTIONS"],
+        allow_headers=["Content-Type"],
     )
 
     @app.post(

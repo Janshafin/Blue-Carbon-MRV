@@ -1,4 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { fetchAllSubmissions, fetchActivityLog, fetchDashboardStats, updateSubmissionStatus } from "./services/apiService";
+import { connectWallet, disputeSubmissionOnChain, getConnectedAddress, isMetaMaskAvailable, registerSubmissionOnChain } from "./lib/contract";
 
 /* ============================== helpers ============================== */
 
@@ -95,36 +97,56 @@ const SECTIONS = [
   { id: 6, label: "Audit Trail" },
 ];
 
-const SUBMISSIONS = [
-  { id: "NCCR-24-4459", project: "Chotanagpur Bamboo Corridor", region: "Jharkhand", type: "Bamboo Plantation", submitted: "17 Aug 2026", score: 19, flagged: true, x: 59.7, y: 43.2, coord: "23.34°N 85.31°E" },
-  { id: "NCCR-24-4468", project: "Sundarbans Mangrove Block 7", region: "West Bengal", type: "Blue Carbon", submitted: "20 Aug 2026", score: 34, flagged: true, x: 70.2, y: 46.0, coord: "22.57°N 88.36°E" },
-  { id: "NCCR-24-4473", project: "Vindhya Dry Forest Reclaim", region: "Madhya Pradesh", type: "Afforestation", submitted: "22 Aug 2026", score: 47, flagged: true, x: 32.4, y: 43.5, coord: "23.25°N 77.40°E" },
-  { id: "NCCR-24-4451", project: "Kutch Mangrove Revival", region: "Gujarat", type: "Blue Carbon", submitted: "14 Aug 2026", score: 57, flagged: false, x: 6.4, y: 41.7, coord: "23.73°N 69.86°E" },
-  { id: "NCCR-24-4462", project: "Aravalli Greenbelt Phase II", region: "Rajasthan", type: "Afforestation", submitted: "18 Aug 2026", score: 65, flagged: false, x: 26.9, y: 30.0, coord: "26.90°N 75.80°E" },
-  { id: "NCCR-24-4465", project: "Deccan Silvopasture Cluster", region: "Karnataka", type: "Agroforestry", submitted: "19 Aug 2026", score: 78, flagged: false, x: 33.1, y: 81.6, coord: "12.97°N 77.59°E" },
-  { id: "NCCR-24-4455", project: "Western Ghats Buffer Restoration", region: "Kerala", type: "Afforestation", submitted: "15 Aug 2026", score: 88, flagged: false, x: 28.5, y: 92.9, coord: "9.93°N 76.26°E" },
-  { id: "NCCR-24-4471", project: "Nilgiri Shola Restoration", region: "Tamil Nadu", type: "Afforestation", submitted: "21 Aug 2026", score: 91, flagged: false, x: 30.0, y: 87.4, coord: "11.41°N 76.70°E" },
-  { id: "NCCR-24-4447", project: "Coromandel Coastal Shelterbelt", region: "Tamil Nadu", type: "Blue Carbon", submitted: "12 Aug 2026", score: 95, flagged: false, x: 40.8, y: 89.8, coord: "10.76°N 79.84°E" },
-];
-
-const ACTIVITY = [
-  { time: "11:04", kind: "approve", text: "NCCR-24-4471 approved \u2014 Nilgiri Shola Restoration, +2,140 t issued" },
-  { time: "10:47", kind: "flag", text: "NCCR-24-4468 flagged \u2014 NDVI growth delta below threshold" },
-  { time: "10:21", kind: "dispute", text: "Dispute opened on NCCR-24-4459 \u2014 Chotanagpur Bamboo Corridor" },
-  { time: "09:58", kind: "approve", text: "NCCR-24-4455 approved \u2014 Western Ghats Buffer Restoration, +3,860 t issued" },
-  { time: "09:30", kind: "submit", text: "NCCR-24-4447 submitted \u2014 Coromandel Coastal Shelterbelt" },
-  { time: "09:12", kind: "flag", text: "NCCR-24-4473 flagged \u2014 geolocation mismatch" },
-];
-
-const HISTOGRAM = [
-  { label: "0\u201320", pct: 10, color: "var(--oxblood)" },
-  { label: "21\u201340", pct: 22, color: "var(--oxblood)" },
-  { label: "41\u201360", pct: 38, color: "var(--brass-text)" },
-  { label: "61\u201380", pct: 72, color: "var(--verdant)" },
-  { label: "81\u2013100", pct: 100, color: "var(--verdant-deep)" },
-];
-
 const SPARK = [2.1, 2.4, 2.2, 2.8, 3.1, 2.9, 3.4, 3.8, 3.6, 4.0, 4.3, 4.1, 4.5, 4.8];
+
+/** Convert a Supabase submission row into the shape the UI components expect */
+function mapSupabaseRow(row) {
+  const d = new Date(row.created_at);
+  const submitted = d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  const hasBadFlags = row.flags && row.flags.length > 0 && !row.flags.every(f => f === "mock_scoring_service");
+  // Deterministic x/y for the map plot from lat/lng
+  const x = ((row.longitude - 68) / (90 - 68)) * 100;
+  const y = ((32 - row.latitude) / (32 - 8)) * 100;
+  return {
+    id: row.id,
+    project: row.project_name,
+    region: row.region || "India",
+    type: row.species ? "Blue Carbon" : "Afforestation",
+    submitted,
+    score: row.score || 0,
+    flagged: hasBadFlags,
+    x: Math.max(2, Math.min(98, x)),
+    y: Math.max(2, Math.min(98, y)),
+    coord: `${Math.abs(row.latitude).toFixed(2)}°${row.latitude >= 0 ? 'N' : 'S'} ${Math.abs(row.longitude).toFixed(2)}°${row.longitude >= 0 ? 'E' : 'W'}`,
+    // Extra fields from Supabase
+    ndvi_before: row.ndvi_before,
+    ndvi_after: row.ndvi_after,
+    confidence_band: row.confidence_band,
+    flags: row.flags || [],
+    status: row.status,
+    on_chain_tx: row.on_chain_tx,
+    on_chain_block: row.on_chain_block,
+    beneficiary: row.beneficiary,
+    reviewer_notes: row.reviewer_notes,
+    photo_url: row.photo_url,
+  };
+}
+
+function computeHistogram(submissions) {
+  const buckets = [0, 0, 0, 0, 0];
+  for (const s of submissions) {
+    const score = s.score || 0;
+    if (score <= 20) buckets[0]++;
+    else if (score <= 40) buckets[1]++;
+    else if (score <= 60) buckets[2]++;
+    else if (score <= 80) buckets[3]++;
+    else buckets[4]++;
+  }
+  const max = Math.max(...buckets, 1);
+  const labels = ["0\u201320", "21\u201340", "41\u201360", "61\u201380", "81\u2013100"];
+  const colors = ["var(--oxblood)", "var(--oxblood)", "var(--brass-text)", "var(--verdant)", "var(--verdant-deep)"];
+  return labels.map((label, i) => ({ label, pct: Math.round((buckets[i] / max) * 100), color: colors[i] }));
+}
 
 const RESERVED_CONTENT = {
   4: {
@@ -511,7 +533,8 @@ function RailNav({ sections, active, activeIndex, onSelect }) {
   );
 }
 
-function Masthead() {
+function Masthead({ walletAddress, onConnect, dataSource }) {
+  const today = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase();
   return (
     <header className="nccr-masthead">
       <SpecimenWatermark />
@@ -520,12 +543,23 @@ function Masthead() {
         <div>
           <div className="nccr-eyebrow">Registry &amp; Verification Console</div>
           <h1 className="nccr-title">National Carbon Credit Registry</h1>
-          <div className="nccr-subtitle">Compliance &amp; Voluntary Carbon Markets &middot; Sample Interface</div>
+          <div className="nccr-subtitle">Compliance &amp; Voluntary Carbon Markets &middot; {dataSource === "backend" ? "Live Data" : "Backend Unavailable"}</div>
         </div>
       </div>
       <div className="nccr-masthead-right">
-        <div className="nccr-reviewer-tag">REVIEWER &middot; A. MENON</div>
-        <div className="nccr-date tnum">27 AUG 2026</div>
+        {walletAddress ? (
+          <div className="nccr-reviewer-tag" title={walletAddress}>WALLET &middot; {walletAddress.slice(0, 6)}…{walletAddress.slice(-4)}</div>
+        ) : (
+          <button
+            type="button"
+            className="nccr-reviewer-tag"
+            style={{ cursor: "pointer", background: "var(--pine-soft)", border: "1px solid var(--brass-bright)" }}
+            onClick={onConnect}
+          >
+            {isMetaMaskAvailable() ? "Connect Wallet" : "Install MetaMask"}
+          </button>
+        )}
+        <div className="nccr-date tnum">{today}</div>
       </div>
     </header>
   );
@@ -533,23 +567,35 @@ function Masthead() {
 
 /* ============================== screens ============================== */
 
-function Overview({ onOpen }) {
+function Overview({ onOpen, submissions, activity, stats, onSeed }) {
+  const histogram = useMemo(() => computeHistogram(submissions), [submissions]);
   return (
     <div className="nccr-screen">
       <ScreenHeading eyebrow="01 \u2014 Command Center" title="Registry Overview" sub="Where the registry stands right now, at a glance." />
 
       <div className="nccr-kpis">
-        <KpiCard label="Pending Review" value="128" sub="+12 since yesterday" />
-        <KpiCard label="Verified This Month" value="812" sub={`${inr(4186240)} tCO2e issued`} accent="verdant" />
-        <KpiCard label="Flagged Submissions" value="23" sub="avg. confidence gap 41 pts" accent="oxblood" />
-        <KpiCard label="Open Disputes" value="6" sub="oldest case: 6 days" accent="brass" />
+        <KpiCard label="Pending Review" value={String(stats.pending)} sub="awaiting reviewer action" />
+        <KpiCard label="Approved" value={String(stats.approved)} sub={`${inr(stats.totalCredits)} tCO2e issued`} accent="verdant" />
+        <KpiCard label="Flagged Submissions" value={String(stats.flagged)} sub="require manual review" accent="oxblood" />
+        <KpiCard label="Open Disputes" value={String(stats.disputed)} sub="pending resolution" accent="brass" />
       </div>
+
+      {submissions.length === 0 && (
+        <div className="nccr-panel" style={{ textAlign: "center", padding: "32px" }}>
+          <p style={{ marginBottom: "12px" }}>No persisted submissions yet.</p>
+          <button type="button" onClick={onSeed} style={{
+            padding: "8px 20px", background: "var(--verdant)", color: "var(--parchment-bright)",
+            border: "none", borderRadius: "6px", cursor: "pointer", fontFamily: "var(--font-mono)",
+            fontSize: "12px", letterSpacing: ".08em"
+          }}>Refresh queue</button>
+        </div>
+      )}
 
       <div className="nccr-row2">
         <div className="nccr-panel nccr-activity">
           <PanelHeading title="Registry Activity" sub="Most recent first" />
           <ul className="nccr-log">
-            {ACTIVITY.map((a, i) => (
+            {activity.map((a, i) => (
               <li key={i}>
                 <span className="tnum nccr-log-time">{a.time}</span>
                 <span className={`nccr-log-dot dot-${a.kind}`} />
@@ -559,9 +605,9 @@ function Overview({ onOpen }) {
           </ul>
         </div>
         <div className="nccr-panel">
-          <PanelHeading title="Score Distribution" sub="All pending" />
+          <PanelHeading title="Score Distribution" sub="All submissions" />
           <div className="nccr-hist-bars">
-            {HISTOGRAM.map((h, i) => (
+            {histogram.map((h, i) => (
               <div key={i} className="nccr-hist-col">
                 <div className="nccr-hist-bar" style={{ height: `${h.pct}%`, background: h.color }} />
                 <span className="nccr-hist-label tnum">{h.label}</span>
@@ -581,7 +627,7 @@ function Overview({ onOpen }) {
         <div className="nccr-panel">
           <PanelHeading title="Registered Parcels" sub="District reference points" />
           <div className="nccr-plot">
-            {SUBMISSIONS.map((s) => (
+            {submissions.map((s) => (
               <button
                 key={s.id}
                 type="button"
@@ -640,15 +686,18 @@ function Queue({ rows, onOpen }) {
   );
 }
 
-function Detail({ submission, decision, onDecide, onPick, all }) {
+function Detail({ submission, decision, onDecide, onPick, all, txData, txPending, walletAddress }) {
   const breakdown = getBreakdown(submission);
   const seed = hashSeed(submission.id);
+  // Use real NDVI values if available from Supabase
+  const beforeBias = submission.ndvi_before != null ? submission.ndvi_before : 0.28;
+  const afterBias = submission.ndvi_after != null ? submission.ndvi_after : (submission.flagged ? 0.32 : 0.78);
   return (
     <div className="nccr-screen">
       <ScreenHeading
         eyebrow="03 \u2014 Submission Detail"
         title={submission.project}
-        sub={`${submission.id} \u00b7 ${submission.region} \u00b7 ${submission.type}`}
+        sub={`${submission.id.slice(0, 13)}… \u00b7 ${submission.region} \u00b7 ${submission.type}`}
       />
 
       <div className="nccr-picker">
@@ -660,15 +709,15 @@ function Detail({ submission, decision, onDecide, onPick, all }) {
             className={`nccr-chip ${s.id === submission.id ? "is-active" : ""} ${s.flagged ? "is-flagged" : ""}`}
             onClick={() => onPick(s.id)}
           >
-            {s.id}
+            {s.id.slice(0, 8)}
           </button>
         ))}
       </div>
 
       <div className="nccr-detail-grid">
         <div className="nccr-panel">
-          <PanelHeading title="Vegetation Index Verification" sub="Sentinel-2 NDVI" />
-          <NdviCompare seed={seed} beforeBias={0.28} afterBias={submission.flagged ? 0.32 : 0.78} />
+          <PanelHeading title="Vegetation Index Verification" sub={`Sentinel-2 NDVI · Before: ${beforeBias.toFixed(2)} → After: ${afterBias.toFixed(2)}`} />
+          <NdviCompare seed={seed} beforeBias={beforeBias} afterBias={afterBias} />
           <div className="nccr-ndvi-legend">
             <span>Bare / Sparse</span>
             <span className="nccr-ndvi-ramp" />
@@ -694,19 +743,40 @@ function Detail({ submission, decision, onDecide, onPick, all }) {
       </div>
 
       <div className="nccr-panel">
-        <PanelHeading title="Registry Decision" sub="Recorded to the registry contract" />
+        <PanelHeading title="Registry Decision" sub="Recorded to the BlueCarbonCredit smart contract on Sepolia" />
         <div className="nccr-decision-row">
           <div className="nccr-seals">
-            <SealStamp kind="approve" stamped={decision === "approved"} onStamp={() => onDecide("approved")} />
-            <SealStamp kind="reject" stamped={decision === "rejected"} onStamp={() => onDecide("rejected")} />
+            <SealStamp kind="approve" stamped={decision === "approved" || submission.status === "approved"} onStamp={() => onDecide("approved")} />
+            <SealStamp kind="reject" stamped={decision === "rejected" || submission.status === "rejected"} onStamp={() => onDecide("rejected")} />
+            <button type="button" className="nccr-chip is-flagged" onClick={() => onDecide("disputed")}>Dispute</button>
           </div>
           <div className="nccr-decision-meta">
-            <p className="mono small">
-              Approve calls <code>RegistryLedger.recordDecision()</code>, then <code>CreditIssuer.mint()</code> for verified tCO2e.
-            </p>
-            {decision && (
+            {!walletAddress && (
+              <p className="mono small" style={{ color: "var(--brass-text)" }}>
+                ⚠ Connect your MetaMask wallet to sign on-chain transactions.
+              </p>
+            )}
+            {walletAddress && !decision && submission.status !== "approved" && submission.status !== "rejected" && (
+              <p className="mono small">
+                Approve calls <code>BlueCarbonCredit.registerSubmission()</code> on Sepolia and mints provisional BCC tokens.
+              </p>
+            )}
+            {txPending && (
+              <p className="mono small" style={{ color: "var(--brass-text)" }}>
+                ⏳ Waiting for MetaMask confirmation and on-chain transaction…
+              </p>
+            )}
+            {(txData || submission.on_chain_tx) && (
               <p className="mono small nccr-tx">
-                &#10003; Recorded &mdash; block #{18820000 + (seed % 500)} &middot; tx {`0x${seed.toString(16)}a3f9\u2026e22`}
+                &#10003; Recorded on-chain &mdash; block #{txData?.blockNumber || submission.on_chain_block} &middot; tx{" "}
+                <a href={`https://sepolia.etherscan.io/tx/${txData?.hash || submission.on_chain_tx}`} target="_blank" rel="noreferrer" style={{ color: "var(--verdant)" }}>
+                  {(txData?.hash || submission.on_chain_tx || "").slice(0, 10)}…{(txData?.hash || submission.on_chain_tx || "").slice(-6)}
+                </a>
+              </p>
+            )}
+            {decision === "rejected" && !txData && !submission.on_chain_tx && (
+              <p className="mono small nccr-tx">
+                &#10003; Rejected — submission declined in registry database.
               </p>
             )}
           </div>
@@ -736,20 +806,130 @@ function Reserved({ n, title, desc, bullets }) {
 
 export default function NCCRRegistryConsole() {
   const [active, setActive] = useState(1);
-  const [selectedId, setSelectedId] = useState("NCCR-24-4468");
+  const [selectedId, setSelectedId] = useState(null);
   const [decisions, setDecisions] = useState({});
+  const [txResults, setTxResults] = useState({});
+  const [txPending, setTxPending] = useState(null);
+  const [walletAddress, setWalletAddress] = useState(null);
+  const [submissions, setSubmissions] = useState([]);
+  const [activity, setActivity] = useState([]);
+  const [stats, setStats] = useState({ pending: 0, approved: 0, flagged: 0, disputed: 0, totalCredits: 0 });
+  const [dataSource, setDataSource] = useState("backend");
+  const [loadError, setLoadError] = useState(null);
 
-  const selected = SUBMISSIONS.find((s) => s.id === selectedId) || SUBMISSIONS[0];
-  const sortedQueue = useMemo(() => [...SUBMISSIONS].sort((a, b) => a.score - b.score), []);
+  // Load only persisted backend data. A failed backend must never turn into a
+  // believable-looking mock dashboard.
+  const loadData = useCallback(async () => {
+    try {
+      const [subs, acts, st] = await Promise.all([
+        fetchAllSubmissions(),
+        fetchActivityLog(10),
+        fetchDashboardStats(),
+      ]);
+      setSubmissions(subs.map(mapSupabaseRow));
+      setActivity(acts.map(a => ({
+        time: new Date(a.created_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+        kind: a.kind,
+        text: a.text,
+      })));
+      setStats(st);
+      setDataSource("backend");
+      setLoadError(null);
+      if (!selectedId && subs.length > 0) setSelectedId(subs[0].id);
+    } catch (e) {
+      console.error("[Dashboard] Backend fetch failed:", e);
+      setSubmissions([]);
+      setActivity([]);
+      setStats({ pending: 0, approved: 0, flagged: 0, disputed: 0, totalCredits: 0 });
+      setDataSource("error");
+      setLoadError(e instanceof Error ? e.message : "Unable to load the verification backend.");
+    }
+  }, [selectedId]);
+
+  useEffect(() => { loadData(); }, []);
+
+  // Check wallet on mount
+  useEffect(() => {
+    getConnectedAddress().then(addr => { if (addr) setWalletAddress(addr); }).catch(() => {});
+  }, []);
+
+  const selected = submissions.find((s) => s.id === selectedId) || submissions[0];
+  const sortedQueue = useMemo(() => [...submissions].sort((a, b) => a.score - b.score), [submissions]);
   const activeIndex = SECTIONS.findIndex((s) => s.id === active);
 
   function openDetail(id) {
     setSelectedId(id);
     setActive(3);
   }
-  function decide(id, verdict) {
-    setDecisions((prev) => ({ ...prev, [id]: verdict }));
+
+  async function handleConnect() {
+    try {
+      const addr = await connectWallet();
+      setWalletAddress(addr);
+    } catch (e) {
+      alert(e.message || "Failed to connect wallet");
+    }
   }
+
+  async function decide(id, verdict) {
+    if (verdict === "approved") {
+      if (!walletAddress) {
+        alert("Connect the verifier wallet before approving a submission on-chain.");
+        return;
+      }
+      // Real blockchain call
+      setTxPending(id);
+      try {
+        const sub = submissions.find(s => s.id === id);
+        const txResult = await registerSubmissionOnChain(
+          id,
+          sub?.photo_url || `submission:${id}`,
+          sub?.beneficiary || walletAddress,
+          "100"
+        );
+        setTxResults(prev => ({ ...prev, [id]: txResult }));
+        const persisted = await updateSubmissionStatus(id, "approved", txResult.hash, txResult.blockNumber, "Verifier approved after on-chain provisional mint.");
+        if (!persisted) throw new Error("The chain transaction succeeded but the backend did not persist its receipt.");
+        setDecisions((prev) => ({ ...prev, [id]: verdict }));
+        loadData(); // Refresh
+      } catch (e) {
+        console.error("[Blockchain] ❌ Transaction failed:", e);
+        alert(`Transaction failed: ${e.message || e}`);
+        setDecisions(prev => { const copy = { ...prev }; delete copy[id]; return copy; });
+      } finally {
+        setTxPending(null);
+      }
+    } else if (verdict === "rejected") {
+      const persisted = await updateSubmissionStatus(id, "rejected", undefined, undefined, "Verifier rejected before minting.");
+      if (!persisted) {
+        alert("Backend did not persist the rejection.");
+        return;
+      }
+      setDecisions((prev) => ({ ...prev, [id]: verdict }));
+      loadData();
+    } else if (verdict === "disputed") {
+      if (!walletAddress) {
+        alert("Connect an authorized disputer wallet before opening an on-chain dispute.");
+        return;
+      }
+      setTxPending(id);
+      try {
+        const txResult = await disputeSubmissionOnChain(id, "Verifier opened a review dispute from the evidence dashboard.");
+        const persisted = await updateSubmissionStatus(id, "disputed", txResult.hash, txResult.blockNumber, "On-chain dispute opened from dashboard.");
+        if (!persisted) throw new Error("The dispute transaction succeeded but the backend did not persist its receipt.");
+        setTxResults(prev => ({ ...prev, [id]: txResult }));
+        setDecisions((prev) => ({ ...prev, [id]: verdict }));
+        loadData();
+      } catch (e) {
+        console.error("[Blockchain] dispute failed:", e);
+        alert(`Dispute failed: ${e.message || e}`);
+      } finally {
+        setTxPending(null);
+      }
+    }
+  }
+
+  if (!selected && submissions.length === 0) return <div className="nccr"><GlobalStyle /><p style={{ padding: 40 }}>{loadError ? `Backend unavailable: ${loadError}` : "No persisted submissions yet. Submit evidence through the live form."}</p></div>;
 
   return (
     <div className="nccr">
@@ -757,9 +937,9 @@ export default function NCCRRegistryConsole() {
       <div className="nccr-shell">
         <RailNav sections={SECTIONS} active={active} activeIndex={activeIndex} onSelect={setActive} />
         <div className="nccr-main">
-          <Masthead />
+          <Masthead walletAddress={walletAddress} onConnect={handleConnect} dataSource={dataSource} />
           <div className="nccr-content">
-            {active === 1 && <Overview onOpen={openDetail} />}
+            {active === 1 && <Overview onOpen={openDetail} submissions={submissions} activity={activity} stats={stats} onSeed={loadData} />}
             {active === 2 && <Queue rows={sortedQueue} onOpen={openDetail} />}
             {active === 3 && (
               <Detail
@@ -767,7 +947,10 @@ export default function NCCRRegistryConsole() {
                 decision={decisions[selected.id]}
                 onDecide={(v) => decide(selected.id, v)}
                 onPick={setSelectedId}
-                all={SUBMISSIONS}
+                all={submissions}
+                txData={txResults[selected.id]}
+                txPending={txPending === selected.id}
+                walletAddress={walletAddress}
               />
             )}
             {active === 4 && <Reserved n="04" {...RESERVED_CONTENT[4]} />}

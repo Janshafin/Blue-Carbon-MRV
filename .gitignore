@@ -59,3 +59,4 @@ gas-report.txt
 # Web App
 dist/
 dev-dist/
+.vercel

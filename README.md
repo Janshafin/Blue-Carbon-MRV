@@ -4,6 +4,11 @@ A **Blockchain-Based Blue Carbon Credit Registry** with AI-driven NDVI plausibil
 
 ## Architecture
 
+For a complete, judge-ready explanation of the problem, solution, trust
+boundaries, lifecycle, technology choices, and live walkthrough, read the
+[Judge Guide](docs/JUDGE_GUIDE.md). The detailed system diagram is also in
+[Architecture](docs/ARCHITECTURE.md).
+
 ```mermaid
 graph TD
     subgraph Core Engine
