@@ -9,7 +9,8 @@ dev-dist/
 # Cloned repo (if present inside workspace)
 Blue-Carbon-MRV/
 
-# Environment files (keep .env but ignore local overrides)
+# Environment files (NEVER commit secrets)
+.env
 .env.local
 .env.*.local
 
@@ -28,3 +29,17 @@ Thumbs.db
 # PWA generated files (regenerated on build)
 public/sw.js
 public/workbox-*.js
+
+# Python cache & testing
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Local database & uploaded assets
+data/*.db
+storage/photos/*
+storage/evidence/*
+!data/.gitkeep
+!storage/photos/.gitkeep
+!storage/evidence/.gitkeep

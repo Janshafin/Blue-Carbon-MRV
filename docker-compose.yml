@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: services/ndvi_scoring/Dockerfile
+    container_name: blue-carbon-mrv-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - MOCK_NDVI=${MOCK_NDVI:-true}
+      - SEPOLIA_RPC_URL=${SEPOLIA_RPC_URL:-https://rpc.sepolia.org}
+      - CONTRACT_ADDRESS=${CONTRACT_ADDRESS:-0x815F9122D29471e161D66068Eef9a508EC079442}
+      - VERIFIER_PRIVATE_KEY=${VERIFIER_PRIVATE_KEY:-}
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-}
+      - SUPABASE_KEY=${SUPABASE_KEY:-}
+    volumes:
+      - backend-data:/app/data
+      - backend-storage:/app/storage
+
+  frontend:
+    image: node:20-alpine
+    container_name: blue-carbon-mrv-frontend
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://backend:8000
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL:-}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY:-}
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run build && npx vite preview --host 0.0.0.0 --port 5173"
+    depends_on:
+      - backend
+
+volumes:
+  backend-data:
+  backend-storage:

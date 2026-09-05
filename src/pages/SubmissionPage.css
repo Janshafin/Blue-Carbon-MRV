@@ -3,10 +3,11 @@
    Driven by the mangrove illustration palette
    ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
 /* ─── Design Tokens ─────────────────────────────────────────── */
 :root {
+  --sp-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --sp-font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", "Segoe UI Mono", Menlo, Monaco, Consolas, monospace;
+
   /* Cosmic Earth & Atmosphere Palette */
   --sp-bg-deep:     #050811;
   --sp-bg-mid:      #0b1326;
@@ -54,8 +55,10 @@
   color: var(--sp-text-primary);
   display: flex;
   flex-direction: column;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--sp-font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   position: relative;
   overflow-x: hidden;
 }
@@ -128,10 +131,10 @@
 }
 
 .sp-nav__brand {
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 600;
   color: var(--sp-text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .sp-nav__ngo {
@@ -150,7 +153,7 @@
   align-items: center;
   justify-content: center;
   font-size: 0.8rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .sp-nav__ngo-info {
@@ -213,60 +216,55 @@
 
 /* ─── Hero ──────────────────────────────────────────────────── */
 .sp-hero {
-  padding: 72px 32px 64px;
+  padding: 56px 32px 40px;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
 }
 
-.sp-hero__tag {
+.sp-hero__tag,
+.sp-hero__pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  font-family: var(--sp-font-mono);
   font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  color: var(--sp-teal-bright);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: #7dd3fc;
   text-transform: uppercase;
-  margin-bottom: 20px;
-  padding: 6px 14px;
-  background: rgba(82, 227, 194, 0.1);
-  border: 1px solid rgba(82, 227, 194, 0.2);
-  border-radius: 20px;
+  margin-bottom: 14px;
+  padding: 4px 10px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 4px;
 }
 
-.sp-hero__tag::before {
+.sp-hero__tag::before,
+.sp-hero__pill-dot {
   content: '';
-  width: 6px;
-  height: 6px;
+  display: inline-block;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: var(--sp-teal-bright);
-  animation: sp-pulse 2s ease infinite;
-}
-
-@keyframes sp-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.5; transform: scale(0.7); }
+  background: #38bdf8;
 }
 
 .sp-hero__title {
-  font-size: 3rem;
-  font-weight: 800;
-  color: var(--sp-text-primary);
-  letter-spacing: -0.04em;
-  line-height: 1.05;
-  margin-bottom: 16px;
-}
-
-.sp-hero__title span {
-  color: var(--sp-teal-bright);
+  font-size: 2.125rem;
+  font-weight: 600;
+  color: #f8fafc;
+  letter-spacing: -0.022em;
+  line-height: 1.2;
+  margin-bottom: 12px;
 }
 
 .sp-hero__subtitle {
-  font-size: 1.0625rem;
-  color: var(--sp-text-secondary);
-  line-height: 1.65;
-  max-width: 540px;
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: #94a3b8;
+  line-height: 1.6;
+  max-width: 580px;
 }
 
 /* ─── Main Layout ───────────────────────────────────────────── */
@@ -344,7 +342,7 @@
 
 .sp-form-group__title {
   font-size: 0.9375rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--sp-text-primary);
   letter-spacing: -0.01em;
   margin-bottom: 3px;
@@ -619,9 +617,10 @@
 
 .sp-coord__label {
   display: block;
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-family: var(--sp-font-mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   color: var(--sp-teal-dim);
   text-transform: uppercase;
   margin-bottom: 4px;
@@ -629,11 +628,12 @@
 
 .sp-coord__value {
   display: block;
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-family: var(--sp-font-mono);
+  font-size: 1.35rem;
+  font-weight: 600;
   color: var(--sp-text-primary);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .sp-location-success__footer {
@@ -854,59 +854,186 @@
   margin-top: 10px;
 }
 
-/* ─── Buttons ───────────────────────────────────────────────── */
+/* ─── Buttons (Engineered, Tactile Design System) ───────────── */
 .sp-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 13px 28px;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  font-family: inherit;
-  border-radius: var(--sp-radius-md);
+  gap: 7px;
+  padding: 9px 18px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, sans-serif;
+  letter-spacing: -0.01em;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all var(--sp-transition);
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease, transform 100ms ease;
   text-decoration: none;
-  border: none;
+  border: 1px solid transparent;
+  user-select: none;
+  white-space: nowrap;
+  outline: none;
+  box-sizing: border-box;
 }
 
+.sp-btn:focus-visible {
+  outline: 2px solid var(--sp-teal-bright);
+  outline-offset: 2px;
+}
+
+/* Primary Button (Solid Oceanic Teal, Tactile Bevel, White Text) */
 .sp-btn--primary {
-  background: linear-gradient(135deg, var(--sp-teal-dim) 0%, var(--sp-teal) 100%);
-  color: var(--sp-bg-deep);
-  box-shadow: 0 0 20px rgba(82, 227, 194, 0.15);
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0369a1;
+  font-weight: 600;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 1px 3px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
 }
 
-.sp-btn--primary:hover {
-  background: linear-gradient(135deg, var(--sp-teal) 0%, var(--sp-teal-bright) 100%);
-  box-shadow: 0 0 30px rgba(82, 227, 194, 0.25);
-  transform: translateY(-1px);
+.sp-btn--primary:hover:not(:disabled) {
+  background: #0369a1;
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 2px 8px rgba(2, 132, 199, 0.35);
 }
 
-.sp-btn--primary:active { transform: translateY(0); }
+.sp-btn--primary:active:not(:disabled) {
+  background: #075985;
+  border-color: #0284c7;
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
 
 .sp-btn--primary:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
+}
+
+/* Secondary Button (Dark Slate Mechanical Surface) */
+.sp-btn--secondary {
+  background: #0d1527;
+  color: #cbd5e1;
+  border: 1px solid #1e293b;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.sp-btn--secondary:hover:not(:disabled) {
+  background: #17233d;
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #f8fafc;
+}
+
+.sp-btn--secondary:active:not(:disabled) {
+  background: #080d19;
+  border-color: #1e293b;
+  transform: translateY(1px);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.sp-btn--secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Wallet Action Button */
+.sp-btn--wallet {
+  background: rgba(14, 165, 233, 0.08);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.32);
+  font-weight: 500;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.sp-btn--wallet:hover:not(:disabled) {
+  background: rgba(14, 165, 233, 0.18);
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+
+.sp-btn--wallet:active:not(:disabled) {
+  background: rgba(14, 165, 233, 0.28);
+  transform: translateY(1px);
+}
+
+/* Size Variants */
+.sp-btn--sm {
+  padding: 5px 11px;
+  font-size: 0.8125rem;
+  border-radius: 5px;
+}
+
+.sp-btn--md {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  border-radius: 6px;
+}
+
+.sp-btn--lg {
+  padding: 13px 24px;
+  font-size: 0.9375rem;
+  border-radius: 8px;
 }
 
 .sp-btn--submit {
   width: 100%;
-  padding: 16px 28px;
+  padding: 15px 24px;
   font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-radius: 8px;
+}
+
+/* Connected Web3 Wallet Badge */
+.sp-wallet-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #060d1a;
+  border: 1px solid #164e63;
+  border-radius: 6px;
+  padding: 5px 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.775rem;
+  color: #67e8f9;
   letter-spacing: 0.02em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-.sp-btn--secondary {
-  background: var(--sp-glass-bg);
-  color: var(--sp-text-primary);
-  border: 1px solid var(--sp-glass-border-strong);
+.sp-wallet-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+  animation: sp-dot-pulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }
 
-.sp-btn--secondary:hover {
-  background: var(--sp-glass-bg-lt);
-  border-color: var(--sp-teal-dim);
+@keyframes sp-dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); }
+  50%      { box-shadow: 0 0 0 4px rgba(34, 197, 94, 0); }
+}
+
+.sp-wallet-disconnect {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 1px 4px;
+  font-size: 0.75rem;
+  line-height: 1;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.sp-wallet-disconnect:hover {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.12);
 }
 
 /* ─── Spinner ───────────────────────────────────────────────── */

@@ -1,0 +1,41 @@
+services:
+  # Backend MRV & Blockchain FastAPI Service
+  - type: web
+    name: blue-carbon-mrv-api
+    env: python
+    buildCommand: "pip install -r services/ndvi_scoring/requirements.txt web3 pillow"
+    startCommand: "python -m uvicorn services.ndvi_scoring.app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: MOCK_NDVI
+        value: "true"
+      - key: SEPOLIA_RPC_URL
+        value: https://rpc.sepolia.org
+      - key: CONTRACT_ADDRESS
+        value: "0x815F9122D29471e161D66068Eef9a508EC079442"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+
+  # Frontend React Progressive Web App
+  - type: web
+    name: blue-carbon-mrv-frontend
+    env: static
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: "./dist"
+    routes:
+      - type: rewrite
+        source: "/*"
+        destination: "/index.html"
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: blue-carbon-mrv-api
+          property: host
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false

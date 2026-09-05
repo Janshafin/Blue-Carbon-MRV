@@ -76,9 +76,10 @@ export function useLocation(): UseLocationResult {
   // Auto-request on mount
   useEffect(() => {
     requestLocation();
+    const currentWatchIdRef = watchIdRef;
     return () => {
-      if (watchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
+      if (currentWatchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(currentWatchIdRef.current);
       }
     };
   }, [requestLocation]);
