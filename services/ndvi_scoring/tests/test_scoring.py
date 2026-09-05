@@ -1,8 +1,13 @@
 from fastapi.testclient import TestClient
 
-from app.imagery import SentinelHubNdviProvider
-from app.main import create_app
-from app.settings import Settings
+try:
+    from app.imagery import SentinelHubNdviProvider
+    from app.main import create_app
+    from app.settings import Settings
+except ImportError:
+    from services.ndvi_scoring.app.imagery import SentinelHubNdviProvider
+    from services.ndvi_scoring.app.main import create_app
+    from services.ndvi_scoring.app.settings import Settings
 
 
 class FixedNdviProvider:

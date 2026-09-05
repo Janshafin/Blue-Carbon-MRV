@@ -1,62 +1,45 @@
-# ========================
-# Environment & Secrets
-# ========================
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+dev-dist/
+
+# Cloned repo (if present inside workspace)
+Blue-Carbon-MRV/
+
+# Environment files (NEVER commit secrets)
 .env
 .env.local
 .env.*.local
 
-# ========================
-# Node.js
-# ========================
-node_modules/
+# Logs
+*.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
 
-# ========================
-# Hardhat
-# ========================
-artifacts/
-cache/
-typechain-types/
-ignition/deployments/
+# Editor / OS
+.vscode/
+.DS_Store
+Thumbs.db
 
-# ========================
-# Python
-# ========================
+# TypeScript build info
+*.tsbuildinfo
+
+# PWA generated files (regenerated on build)
+public/sw.js
+public/workbox-*.js
+
+# Python cache & testing
 __pycache__/
 *.py[cod]
 *$py.class
-venv/
-.venv/
-*.egg-info/
+.pytest_cache/
 
-# ========================
-# OS
-# ========================
-.DS_Store
-Thumbs.db
-*.swp
-*.swo
-*~
-
-# ========================
-# IDE
-# ========================
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
-
-# ========================
-# Coverage & Reports
-# ========================
-coverage/
-coverage.json
-gas-report.txt
-
-# Web App
-dist/
-dev-dist/
-.vercel
+# Local database & uploaded assets
+data/*.db
+storage/photos/*
+storage/evidence/*
+!data/.gitkeep
+!storage/photos/.gitkeep
+!storage/evidence/.gitkeep
