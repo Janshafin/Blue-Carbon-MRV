@@ -2,7 +2,7 @@ import os
 import re
 import json
 import uuid
-from typing import Optional, List, Dict, Any
+from typing import Optional
 from pathlib import Path
 
 from fastapi import (
@@ -15,7 +15,7 @@ from fastapi import (
     BackgroundTasks,
     status,
 )
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -29,12 +29,11 @@ from .db import (
 from .storage import save_submission_photo, resolve_photo_path, StorageError
 from .imagery import (
     ImageryProvider,
-    SentinelHubNdviProvider,
     get_active_imagery_provider,
 )
 from .models import ScoreSubmissionRequest, ScoreSubmissionResponse
 from .scoring import score_submission
-from .settings import SentinelHubConfigurationError, Settings
+from .settings import SentinelHubConfigurationError
 from .pipeline import run_verification_pipeline
 from .blockchain import check_verifier_role
 
@@ -50,7 +49,10 @@ def create_app(provider: Optional[ImageryProvider] = None) -> FastAPI:
     app = FastAPI(
         title="Blue Carbon MRV API & Verification Engine",
         version="1.0.0",
-        description="End-to-end Blue Carbon MRV backend with Sentinel-2 satellite analysis, plausibility scoring, and Sepolia blockchain registry.",
+        description=(
+            "End-to-end Blue Carbon MRV backend with Sentinel-2 satellite "
+            "analysis, plausibility scoring, and Sepolia blockchain registry."
+        ),
     )
 
     # CORS configuration for Vite frontend
@@ -62,7 +64,7 @@ def create_app(provider: Optional[ImageryProvider] = None) -> FastAPI:
         allow_headers=["*"],
     )
 
-    # ─── Health Endpoint (Phase 2 & 17) ───────────────────────────────────────
+    # ─── Health Endpoint (Phase 2 & 17) ─────────────────────────────────────
     @app.get("/api/health", tags=["System"])
     def health_check(db: Session = Depends(get_db)):
         # Database check
@@ -74,13 +76,30 @@ def create_app(provider: Optional[ImageryProvider] = None) -> FastAPI:
             db_ok = False
 
         # Satellite check
-        mock_mode = os.getenv("MOCK_NDVI", "").strip().lower() in ("true", "1", "yes")
+        mock_mode = os.getenv(
+            "MOCK_NDVI",
+            "").strip().lower() in (
+            "true",
+            "1",
+            "yes")
         copernicus_configured = bool(
-            os.getenv("COPERNICUS_CLIENT_ID") and os.getenv("COPERNICUS_CLIENT_SECRET")
+            os.getenv("COPERNICUS_CLIENT_ID") and os.getenv(
+                "COPERNICUS_CLIENT_SECRET")
         )
 
         # Blockchain check
         blockchain_status = check_verifier_role()
+
+        if mock_mode:
+            satellite_provider = "MockNdviProvider (Simulated)"
+        elif copernicus_configured:
+            satellite_provider = "Copernicus Sentinel-2 CDSE"
+        else:
+            satellite_provider = "Unconfigured (Requires credentials)"
+
+        rpc_configured = bool(
+            os.getenv("SEPOLIA_RPC_URL") or os.getenv("RPC_URL")
+        )
 
         return {
             "status": "healthy" if db_ok else "degraded",
@@ -88,21 +107,19 @@ def create_app(provider: Optional[ImageryProvider] = None) -> FastAPI:
             "satellite": {
                 "mock_mode": mock_mode,
                 "copernicus_configured": copernicus_configured,
-                "provider": "MockNdviProvider (Simulated)" if mock_mode else (
-                    "Copernicus Sentinel-2 CDSE" if copernicus_configured else "Unconfigured (Requires credentials)"
-                ),
+                "provider": satellite_provider,
             },
             "blockchain": {
                 "network": "Sepolia Testnet",
                 "contract_configured": True,
-                "rpc_configured": bool(os.getenv("SEPOLIA_RPC_URL") or os.getenv("RPC_URL")),
+                "rpc_configured": rpc_configured,
                 "verifier_configured": blockchain_status.get("configured", False),
                 "has_verifier_role": blockchain_status.get("has_role", False),
                 "details": blockchain_status,
             },
         }
 
-    # ─── Submission API (Phase 2) ─────────────────────────────────────────────
+    # ─── Submission API (Phase 2) ───────────────────────────────────────────
     @app.post(
         "/api/submissions",
         status_code=status.HTTP_202_ACCEPTED,
@@ -124,32 +141,42 @@ def create_app(provider: Optional[ImageryProvider] = None) -> FastAPI:
         # 1. Validation
         if not (-90.0 <= latitude <= 90.0):
             raise HTTPException(
-                status_code=400, detail="Latitude must be between -90 and 90 degrees."
+                status_code=400,
+                detail="Latitude must be between -90 and 90 degrees."
             )
         if not (-180.0 <= longitude <= 180.0):
             raise HTTPException(
-                status_code=400, detail="Longitude must be between -180 and 180 degrees."
+                status_code=400,
+                detail="Longitude must be between -180 and 180 degrees."
             )
 
         clean_wallet = wallet_address.strip()
         if not re.match(r"^0x[a-fA-F0-9]{40}$", clean_wallet):
             raise HTTPException(
                 status_code=400,
-                detail="Invalid Ethereum wallet address. Expected 42-character hex address starting with 0x.",
+                detail=(
+                    "Invalid Ethereum wallet address. Expected 42-character "
+                    "hex address starting with 0x."
+                ),
             )
 
         if not species.strip():
-            raise HTTPException(status_code=400, detail="Species name is required.")
+            raise HTTPException(
+                status_code=400,
+                detail="Species name is required.")
         if not ngo_id.strip():
             raise HTTPException(status_code=400, detail="NGO ID is required.")
         if not planting_date.strip():
-            raise HTTPException(status_code=400, detail="Planting date is required.")
+            raise HTTPException(
+                status_code=400,
+                detail="Planting date is required.")
 
         # Validate content type
         if photo.content_type not in ("image/jpeg", "image/png", "image/jpg"):
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid image format '{photo.content_type}'. Only JPEG and PNG are accepted.",
+                detail=f"Invalid image format '{
+                    photo.content_type}'. Only JPEG and PNG are accepted.",
             )
 
         # 2. Generate unique ID & save photo
@@ -166,7 +193,8 @@ def create_app(provider: Optional[ImageryProvider] = None) -> FastAPI:
             try:
                 from .supabase_client import upload_photo_to_supabase_storage
                 upload_photo_to_supabase_storage(
-                    filename=f"{submission_id}_{photo.filename or 'photo.jpg'}",
+                    filename=f"{submission_id}_{
+                        photo.filename or 'photo.jpg'}",
                     file_bytes=content,
                     content_type=photo.content_type or "image/jpeg",
                 )
@@ -224,12 +252,15 @@ def create_app(provider: Optional[ImageryProvider] = None) -> FastAPI:
             "message": "Submission received and queued for MRV verification",
         }
 
-    # ─── Get Submission State ─────────────────────────────────────────────────
+    # ─── Get Submission State ───────────────────────────────────────────────
     @app.get("/api/submissions/{submission_id}", tags=["Submissions"])
     def get_submission(submission_id: str, db: Session = Depends(get_db)):
-        sub = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
+        sub = db.query(SubmissionModel).filter(
+            SubmissionModel.id == submission_id).first()
         if not sub:
-            raise HTTPException(status_code=404, detail=f"Submission '{submission_id}' not found.")
+            raise HTTPException(
+                status_code=404,
+                detail=f"Submission '{submission_id}' not found.")
 
         result = sub.to_dict()
         if sub.verification:
@@ -239,12 +270,17 @@ def create_app(provider: Optional[ImageryProvider] = None) -> FastAPI:
 
         return result
 
-    # ─── Get Verification Details ─────────────────────────────────────────────
-    @app.get("/api/submissions/{submission_id}/verification", tags=["Submissions"])
-    def get_submission_verification(submission_id: str, db: Session = Depends(get_db)):
-        sub = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
+    # ─── Get Verification Details ───────────────────────────────────────────
+    @app.get("/api/submissions/{submission_id}/verification",
+             tags=["Submissions"])
+    def get_submission_verification(
+            submission_id: str, db: Session = Depends(get_db)):
+        sub = db.query(SubmissionModel).filter(
+            SubmissionModel.id == submission_id).first()
         if not sub:
-            raise HTTPException(status_code=404, detail=f"Submission '{submission_id}' not found.")
+            raise HTTPException(
+                status_code=404,
+                detail=f"Submission '{submission_id}' not found.")
 
         ver = sub.verification
         bc = sub.blockchain
@@ -256,7 +292,12 @@ def create_app(provider: Optional[ImageryProvider] = None) -> FastAPI:
             except Exception:
                 flags = []
 
-        is_mock = os.getenv("MOCK_NDVI", "").strip().lower() in ("true", "1", "yes")
+        is_mock = os.getenv(
+            "MOCK_NDVI",
+            "").strip().lower() in (
+            "true",
+            "1",
+            "yes")
 
         return {
             "submission_id": sub.id,
@@ -284,7 +325,7 @@ def create_app(provider: Optional[ImageryProvider] = None) -> FastAPI:
             },
         }
 
-    # ─── Live Registry Endpoint (Phase 2 & 12) ────────────────────────────────
+    # ─── Live Registry Endpoint (Phase 2 & 12) ──────────────────────────────
     @app.get("/api/registry", tags=["Registry"])
     def get_registry(db: Session = Depends(get_db)):
         """
@@ -337,12 +378,15 @@ def create_app(provider: Optional[ImageryProvider] = None) -> FastAPI:
             "projects": projects,
         }
 
-    # ─── Evidence Endpoint (Phase 2 & 10) ─────────────────────────────────────
+    # ─── Evidence Endpoint (Phase 2 & 10) ───────────────────────────────────
     @app.get("/api/evidence/{submission_id}", tags=["Evidence"])
     def get_evidence(submission_id: str, db: Session = Depends(get_db)):
-        sub = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
+        sub = db.query(SubmissionModel).filter(
+            SubmissionModel.id == submission_id).first()
         if not sub:
-            raise HTTPException(status_code=404, detail=f"Submission '{submission_id}' not found.")
+            raise HTTPException(
+                status_code=404,
+                detail=f"Submission '{submission_id}' not found.")
 
         evidence_file = EVIDENCE_DIR / f"{submission_id}.json"
         if evidence_file.exists():
@@ -384,12 +428,15 @@ def create_app(provider: Optional[ImageryProvider] = None) -> FastAPI:
             "timestamp": sub.created_at.isoformat() if sub.created_at else None,
         }
 
-    # ─── Secure Photo Retrieval (Phase 4) ─────────────────────────────────────
+    # ─── Secure Photo Retrieval (Phase 4) ───────────────────────────────────
     @app.get("/api/evidence/{submission_id}/photo", tags=["Evidence"])
-    def get_submission_photo(submission_id: str, db: Session = Depends(get_db)):
-        sub = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
+    def get_submission_photo(submission_id: str,
+                             db: Session = Depends(get_db)):
+        sub = db.query(SubmissionModel).filter(
+            SubmissionModel.id == submission_id).first()
         if not sub or not sub.photo_path:
-            raise HTTPException(status_code=404, detail="Photo not found for this submission.")
+            raise HTTPException(status_code=404,
+                                detail="Photo not found for this submission.")
 
         try:
             full_path = resolve_photo_path(sub.photo_path)
@@ -399,14 +446,15 @@ def create_app(provider: Optional[ImageryProvider] = None) -> FastAPI:
         mime_type = "image/png" if full_path.suffix.lower() == ".png" else "image/jpeg"
         return FileResponse(full_path, media_type=mime_type)
 
-    # ─── Backward Compatibility: POST /score-submission ───────────────────────
+    # ─── Backward Compatibility: POST /score-submission ─────────────────────
     @app.post(
         "/score-submission",
         response_model=ScoreSubmissionResponse,
         summary="Score a planting submission's NDVI and EXIF plausibility (legacy)",
         tags=["Core Engine"],
     )
-    def score_endpoint(submission: ScoreSubmissionRequest) -> ScoreSubmissionResponse:
+    def score_endpoint(
+            submission: ScoreSubmissionRequest) -> ScoreSubmissionResponse:
         try:
             active_provider = provider or get_active_imagery_provider()
             return score_submission(submission, active_provider)

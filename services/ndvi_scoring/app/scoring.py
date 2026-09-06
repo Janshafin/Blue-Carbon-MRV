@@ -1,7 +1,12 @@
 from datetime import date
 from math import asin, cos, radians, sin, sqrt
 
-from .imagery import ImageryProvider, ImageryUnavailableError, planting_window, recent_window
+from .imagery import (
+    ImageryProvider,
+    ImageryUnavailableError,
+    planting_window,
+    recent_window,
+)
 from .models import ScoreSubmissionRequest, ScoreSubmissionResponse
 
 
@@ -23,7 +28,8 @@ def _distance_meters(
     return 2 * earth_radius_meters * asin(sqrt(haversine))
 
 
-def _apply_exif_checks(submission: ScoreSubmissionRequest, score: int, flags: list[str]) -> int:
+def _apply_exif_checks(submission: ScoreSubmissionRequest,
+                       score: int, flags: list[str]) -> int:
     photo = submission.photo_metadata
     if photo.gps_latitude is None or photo.gps_longitude is None:
         flags.append("photo_gps_missing")
@@ -43,19 +49,26 @@ def _apply_exif_checks(submission: ScoreSubmissionRequest, score: int, flags: li
     if photo.captured_at is None:
         flags.append("photo_timestamp_missing")
         score -= 10
-    elif abs((photo.captured_at.date() - submission.claimed_planting_date).days) > EXIF_DATE_TOLERANCE_DAYS:
-        flags.append("photo_timestamp_mismatch")
-        score -= 15
+    else:
+        date_diff = abs(
+            (photo.captured_at.date() - submission.claimed_planting_date).days
+        )
+        if date_diff > EXIF_DATE_TOLERANCE_DAYS:
+            flags.append("photo_timestamp_mismatch")
+            score -= 15
     return score
 
 
 def score_submission(
-    submission: ScoreSubmissionRequest, provider: ImageryProvider, today: date | None = None
+    submission: ScoreSubmissionRequest,
+    provider: ImageryProvider,
+    today: date | None = None,
 ) -> ScoreSubmissionResponse:
     """Produce a deliberately simple, reviewable plausibility assessment."""
 
     evaluation_date = today or date.today()
-    before_start, before_end = planting_window(submission.claimed_planting_date, 30)
+    before_start, before_end = planting_window(
+        submission.claimed_planting_date, 30)
     after_start, after_end = recent_window(evaluation_date, 30)
     try:
         ndvi_before = provider.mean_ndvi(

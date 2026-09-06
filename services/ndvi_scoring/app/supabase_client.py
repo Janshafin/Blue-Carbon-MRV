@@ -6,13 +6,14 @@ Falls back safely to local SQLite and filesystem when credentials are omitted.
 
 import os
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict
 import httpx
 
 logger = logging.getLogger(__name__)
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
-SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY", "")
+SUPABASE_KEY = os.environ.get(
+    "SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY", "")
 
 
 def is_supabase_enabled() -> bool:
@@ -63,12 +64,15 @@ def sync_submission_to_supabase(
     try:
         url = f"{SUPABASE_URL}/rest/v1/submissions"
         with httpx.Client(timeout=8.0) as client:
-            resp = client.post(url, headers=get_supabase_headers(), json=payload)
+            resp = client.post(
+                url, headers=get_supabase_headers(), json=payload)
             if resp.is_success:
-                logger.info(f"Successfully synced submission {submission_id} to Supabase.")
+                logger.info(
+                    f"Successfully synced submission {submission_id} to Supabase.")
                 return True
             else:
-                logger.warning(f"Supabase submission sync error: {resp.status_code} - {resp.text}")
+                logger.warning(
+                    f"Supabase submission sync error: {resp.status_code} - {resp.text}")
                 return False
     except Exception as e:
         logger.warning(f"Failed to reach Supabase during submission sync: {e}")
@@ -118,17 +122,29 @@ def sync_verification_to_supabase(
         with httpx.Client(timeout=8.0) as client:
             resp = client.post(url, headers=headers, json=payload)
             if resp.is_success:
-                logger.info(f"Successfully synced verification for {submission_id} to Supabase.")
+                logger.info(
+                    "Successfully synced verification for %s to Supabase.",
+                    submission_id,
+                )
                 return True
             else:
-                logger.warning(f"Supabase verification sync error: {resp.status_code} - {resp.text}")
+                logger.warning(
+                    "Supabase verification sync error: %s - %s",
+                    resp.status_code,
+                    resp.text,
+                )
                 return False
     except Exception as e:
-        logger.warning(f"Failed to reach Supabase during verification sync: {e}")
+        logger.warning(
+            f"Failed to reach Supabase during verification sync: {e}")
         return False
 
 
-def upload_photo_to_supabase_storage(filename: str, file_bytes: bytes, content_type: str = "image/jpeg") -> Optional[str]:
+def upload_photo_to_supabase_storage(
+    filename: str,
+    file_bytes: bytes,
+    content_type: str = "image/jpeg",
+) -> Optional[str]:
     """Upload an evidence photo to Supabase Storage bucket 'evidence'."""
     if not is_supabase_enabled():
         return None
@@ -144,11 +160,15 @@ def upload_photo_to_supabase_storage(filename: str, file_bytes: bytes, content_t
         with httpx.Client(timeout=15.0) as client:
             resp = client.post(url, headers=headers, content=file_bytes)
             if resp.is_success:
-                public_url = f"{SUPABASE_URL}/storage/v1/object/public/evidence/{filename}"
-                logger.info(f"Uploaded photo to Supabase Storage: {public_url}")
+                public_url = (
+                    f"{SUPABASE_URL}/storage/v1/object/public/evidence/{filename}"
+                )
+                logger.info(
+                    f"Uploaded photo to Supabase Storage: {public_url}")
                 return public_url
             else:
-                logger.warning(f"Supabase storage upload error: {resp.status_code} - {resp.text}")
+                logger.warning(
+                    f"Supabase storage upload error: {resp.status_code} - {resp.text}")
                 return None
     except Exception as e:
         logger.warning(f"Failed to upload photo to Supabase storage: {e}")

@@ -67,14 +67,17 @@ def extract_exif_metadata(file_path: Path) -> Dict[str, Any]:
             for tag_id, val in raw_exif.items():
                 tag_name = ExifTags.TAGS.get(tag_id, tag_id)
                 if tag_name == "Make" and isinstance(val, (str, bytes)):
-                    metadata["make"] = val.decode() if isinstance(val, bytes) else val
+                    metadata["make"] = val.decode() if isinstance(
+                        val, bytes) else val
                 elif tag_name == "Model" and isinstance(val, (str, bytes)):
-                    metadata["model"] = val.decode() if isinstance(val, bytes) else val
+                    metadata["model"] = val.decode() if isinstance(
+                        val, bytes) else val
                 elif tag_name == "DateTimeOriginal" or tag_name == "DateTime":
                     # Format: 'YYYY:MM:DD HH:MM:SS'
                     try:
                         dt_str = val.decode() if isinstance(val, bytes) else str(val)
-                        dt = datetime.strptime(dt_str.strip(), "%Y:%m:%d %H:%M:%S")
+                        dt = datetime.strptime(
+                            dt_str.strip(), "%Y:%m:%d %H:%M:%S")
                         metadata["captured_at"] = dt.isoformat() + "Z"
                     except Exception:
                         pass
@@ -120,12 +123,15 @@ def save_submission_photo(
     Returns relative storage path and extracted EXIF dict.
     """
     if len(content) > MAX_FILE_SIZE:
-        raise StorageError(f"Image size exceeds maximum limit of {MAX_FILE_SIZE // (1024 * 1024)} MB")
+        raise StorageError(
+            f"Image size exceeds maximum limit of {MAX_FILE_SIZE // (1024 * 1024)} MB")
 
     clean_name = sanitize_filename(filename)
     ext = Path(clean_name).suffix.lower()
     if ext not in ALLOWED_EXTENSIONS:
-        raise StorageError(f"File extension '{ext}' is not permitted. Allowed: {', '.join(ALLOWED_EXTENSIONS)}")
+        raise StorageError(
+            f"File extension '{ext}' is not permitted. Allowed: {
+                ', '.join(ALLOWED_EXTENSIONS)}")
 
     sub_dir = PHOTOS_DIR / submission_id
     sub_dir.mkdir(parents=True, exist_ok=True)
@@ -144,15 +150,18 @@ def save_submission_photo(
 
 def resolve_photo_path(relative_ref: str) -> Path:
     """
-    Resolves relative photo reference to absolute path with directory traversal protection.
-    Raises StorageError if file does not exist or traverses outside storage directory.
+    Resolves relative photo reference to absolute path with directory
+    traversal protection.
+    Raises StorageError if file does not exist or traverses outside storage
+    directory.
     """
     cleaned_ref = relative_ref.strip("/\\")
     full_path = (STORAGE_DIR / cleaned_ref).resolve()
 
     # Path traversal protection
     try:
-        common = os.path.commonpath([str(PHOTOS_DIR.resolve()), str(full_path)])
+        common = os.path.commonpath(
+            [str(PHOTOS_DIR.resolve()), str(full_path)])
         if common != str(PHOTOS_DIR.resolve()):
             raise StorageError("Invalid file path: path traversal detected.")
     except Exception as e:

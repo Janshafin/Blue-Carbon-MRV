@@ -21,11 +21,13 @@ PROJECT_ROOT = APP_DIR.parents[2]
 DATA_DIR = PROJECT_ROOT / "data"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DATA_DIR / 'blue_carbon.db'}")
+DATABASE_URL = os.getenv("DATABASE_URL",
+                         f"sqlite:///{DATA_DIR / 'blue_carbon.db'}")
 
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
+    connect_args={"check_same_thread": False} if DATABASE_URL.startswith(
+        "sqlite") else {},
     pool_pre_ping=True,
 )
 
@@ -50,10 +52,22 @@ class SubmissionModel(Base):
     exif_data = Column(Text, default="{}", nullable=False)
     status = Column(String(50), default="RECEIVED", nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False)
 
-    verification = relationship("VerificationModel", back_populates="submission", uselist=False, cascade="all, delete-orphan")
-    blockchain = relationship("BlockchainRecordModel", back_populates="submission", uselist=False, cascade="all, delete-orphan")
+    verification = relationship(
+        "VerificationModel",
+        back_populates="submission",
+        uselist=False,
+        cascade="all, delete-orphan")
+    blockchain = relationship(
+        "BlockchainRecordModel",
+        back_populates="submission",
+        uselist=False,
+        cascade="all, delete-orphan")
 
     def to_dict(self):
         exif = {}
@@ -84,8 +98,18 @@ class VerificationModel(Base):
     __tablename__ = "verifications"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    submission_id = Column(String(64), ForeignKey("submissions.id", ondelete="CASCADE"), unique=True, nullable=False, index=True)
-    satellite_source = Column(String(100), default="Sentinel-2", nullable=False)
+    submission_id = Column(
+        String(64),
+        ForeignKey(
+            "submissions.id",
+            ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+        index=True)
+    satellite_source = Column(
+        String(100),
+        default="Sentinel-2",
+        nullable=False)
     before_imagery_ref = Column(String(512), nullable=True)
     after_imagery_ref = Column(String(512), nullable=True)
     ndvi_before = Column(Float, nullable=True)
@@ -98,7 +122,11 @@ class VerificationModel(Base):
     verification_status = Column(String(50), default="PENDING", nullable=False)
     error_message = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False)
 
     submission = relationship("SubmissionModel", back_populates="verification")
 
@@ -132,18 +160,32 @@ class BlockchainRecordModel(Base):
     __tablename__ = "blockchain_records"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    submission_id = Column(String(64), ForeignKey("submissions.id", ondelete="CASCADE"), unique=True, nullable=False, index=True)
+    submission_id = Column(
+        String(64),
+        ForeignKey(
+            "submissions.id",
+            ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+        index=True)
     wallet_address = Column(String(64), nullable=False)
     network = Column(String(50), default="sepolia", nullable=False)
     contract_address = Column(String(64), default="", nullable=False)
     token_id = Column(String(64), nullable=True)
     credit_amount = Column(String(50), default="100", nullable=False)
     transaction_hash = Column(String(128), nullable=True, index=True)
-    blockchain_status = Column(String(50), default="unregistered", nullable=False)
+    blockchain_status = Column(
+        String(50),
+        default="unregistered",
+        nullable=False)
     metadata_uri = Column(String(512), nullable=True)
     error_message = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False)
 
     submission = relationship("SubmissionModel", back_populates="blockchain")
 

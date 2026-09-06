@@ -2,10 +2,10 @@ import json
 import logging
 from datetime import date, datetime
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 from .db import SessionLocal, SubmissionModel, VerificationModel, BlockchainRecordModel
-from .imagery import get_active_imagery_provider, planting_window, recent_window, ImageryUnavailableError
+from .imagery import get_active_imagery_provider
 from .models import ScoreSubmissionRequest, PhotoMetadata
 from .scoring import score_submission
 from .blockchain import (
@@ -28,12 +28,15 @@ def generate_and_save_evidence(
     provider_meta: Dict[str, Any],
 ) -> str:
     """
-    Creates a deterministic evidence record per Phase 10 and saves to storage/evidence/{id}.json.
-    Returns the evidence reference URI.
+    Creates a deterministic evidence record per Phase 10 and saves to
+    storage/evidence/{id}.json. Returns the evidence reference URI.
     """
     evidence_payload = {
         "submission_id": submission.id,
-        "project": submission.project_name or f"Mangrove Planting #{submission.id[:8]}",
+        "project": (
+            submission.project_name
+            or f"Mangrove Planting #{submission.id[:8]}"
+        ),
         "location": {
             "latitude": submission.latitude,
             "longitude": submission.longitude,
@@ -59,7 +62,11 @@ def generate_and_save_evidence(
     }
 
     evidence_file = EVIDENCE_DIR / f"{submission.id}.json"
-    evidence_file.write_text(json.dumps(evidence_payload, indent=2), encoding="utf-8")
+    evidence_file.write_text(
+        json.dumps(
+            evidence_payload,
+            indent=2),
+        encoding="utf-8")
 
     return f"evidence://{submission.id}"
 
@@ -67,24 +74,30 @@ def generate_and_save_evidence(
 def run_verification_pipeline(submission_id: str):
     """
     Orchestrates the entire verification pipeline for a submission:
-    RECEIVED -> PROCESSING -> SATELLITE_ANALYSIS -> SCORING -> VERIFIED/REJECTED -> BLOCKCHAIN_PENDING -> CREDITED/FAILED.
+    RECEIVED -> PROCESSING -> SATELLITE_ANALYSIS -> SCORING ->
+    VERIFIED/REJECTED -> BLOCKCHAIN_PENDING -> CREDITED/FAILED.
     Thread-safe and persists every step.
     """
     db = SessionLocal()
     try:
-        sub = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
+        sub = db.query(SubmissionModel).filter(
+            SubmissionModel.id == submission_id).first()
         if not sub:
             logger.error("Submission %s not found in database", submission_id)
             return
 
-        ver = db.query(VerificationModel).filter(VerificationModel.submission_id == submission_id).first()
+        ver = db.query(VerificationModel).filter(
+            VerificationModel.submission_id == submission_id).first()
         if not ver:
             ver = VerificationModel(submission_id=submission_id)
             db.add(ver)
 
-        bc = db.query(BlockchainRecordModel).filter(BlockchainRecordModel.submission_id == submission_id).first()
+        bc = db.query(BlockchainRecordModel).filter(
+            BlockchainRecordModel.submission_id == submission_id).first()
         if not bc:
-            bc = BlockchainRecordModel(submission_id=submission_id, wallet_address=sub.wallet_address)
+            bc = BlockchainRecordModel(
+                submission_id=submission_id,
+                wallet_address=sub.wallet_address)
             db.add(bc)
 
         # 1. State -> PROCESSING
@@ -113,7 +126,8 @@ def run_verification_pipeline(submission_id: str):
             planted_dt = date.fromisoformat(sub.planting_date)
         except Exception:
             try:
-                planted_dt = datetime.strptime(sub.planting_date, "%Y-%m-%d").date()
+                planted_dt = datetime.strptime(
+                    sub.planting_date, "%Y-%m-%d").date()
             except Exception:
                 planted_dt = date.today()
 
@@ -132,7 +146,8 @@ def run_verification_pipeline(submission_id: str):
         captured_at_val = None
         if exif_dict.get("captured_at"):
             try:
-                captured_at_val = datetime.fromisoformat(exif_dict["captured_at"].rstrip("Z"))
+                captured_at_val = datetime.fromisoformat(
+                    exif_dict["captured_at"].rstrip("Z"))
             except Exception:
                 pass
 
@@ -157,11 +172,13 @@ def run_verification_pipeline(submission_id: str):
         ver.ndvi_before = score_resp.ndvi_before
         ver.ndvi_after = score_resp.ndvi_after
         if score_resp.ndvi_before is not None and score_resp.ndvi_after is not None:
-            ver.ndvi_change = round(score_resp.ndvi_after - score_resp.ndvi_before, 4)
+            ver.ndvi_change = round(
+                score_resp.ndvi_after - score_resp.ndvi_before, 4)
 
         # 4. Eligibility Decision
         # An MRV record is eligible for provisional minting if plausibility score >= 60,
-        # satellite telemetry confirms positive vegetation increase, and no fatal flags.
+        # satellite telemetry confirms positive vegetation increase, and no
+        # fatal flags.
         ndvi_improved = (ver.ndvi_change is not None and ver.ndvi_change > 0)
         fatal_flags = {"temporal_inconsistency"}
         has_fatal_flags = any(f in fatal_flags for f in score_resp.flags)
@@ -177,7 +194,8 @@ def run_verification_pipeline(submission_id: str):
             sub.status = "REJECTED"
             ver.verification_status = "REJECTED"
             ver.error_message = (
-                f"Submission does not meet eligibility threshold (Score: {score_resp.score}/100, "
+                f"Submission does not meet eligibility threshold (Score: {
+                    score_resp.score}/100, "
                 f"NDVI delta: {ver.ndvi_change}, Flags: {score_resp.flags})."
             )
             db.commit()
@@ -221,25 +239,36 @@ def run_verification_pipeline(submission_id: str):
                 bc.error_message = "Blockchain transaction reverted on Sepolia."
 
         except BlockchainConfigError as bce:
-            # Missing credentials per Phase 19: do not crash, clearly report missing config
-            logger.info("Blockchain registration deferred for %s: %s", sub.id, bce)
+            # Missing credentials per Phase 19: do not crash, clearly report
+            # missing config
+            logger.info(
+                "Blockchain registration deferred for %s: %s",
+                sub.id,
+                bce)
             sub.status = "VERIFIED"
             ver.verification_status = "VERIFIED"
             bc.blockchain_status = "unregistered"
             bc.error_message = str(bce)
 
         except BlockchainExecutionError as bee:
-            logger.warning("Blockchain execution error for %s: %s", sub.id, bee)
+            logger.warning(
+                "Blockchain execution error for %s: %s", sub.id, bee)
             sub.status = "VERIFIED"
             ver.verification_status = "VERIFIED"
         db.commit()
 
         # Supabase Cloud Sync (if SUPABASE_URL and key are configured)
         try:
-            from .supabase_client import sync_submission_to_supabase, sync_verification_to_supabase
+            from .supabase_client import (
+                sync_submission_to_supabase,
+                sync_verification_to_supabase,
+            )
             sync_submission_to_supabase(
                 submission_id=sub.id,
-                project_name=sub.project_name or f"Mangrove Planting #{sub.id[:8]}",
+                project_name=(
+                    sub.project_name
+                    or f"Mangrove Planting #{sub.id[:8]}"
+                ),
                 planting_date=sub.planting_date,
                 species=sub.species,
                 ngo_id=sub.ngo_id,
@@ -267,12 +296,17 @@ def run_verification_pipeline(submission_id: str):
             logger.debug("Supabase sync skipped: %s", se)
 
     except Exception as e:
-        logger.exception("Verification pipeline error for %s: %s", submission_id, e)
+        logger.exception(
+            "Verification pipeline error for %s: %s",
+            submission_id,
+            e)
         try:
-            sub = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
+            sub = db.query(SubmissionModel).filter(
+                SubmissionModel.id == submission_id).first()
             if sub:
                 sub.status = "FAILED"
-            ver = db.query(VerificationModel).filter(VerificationModel.submission_id == submission_id).first()
+            ver = db.query(VerificationModel).filter(
+                VerificationModel.submission_id == submission_id).first()
             if ver:
                 ver.verification_status = "FAILED"
                 ver.error_message = f"Internal verification error: {e}"

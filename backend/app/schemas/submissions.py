@@ -32,7 +32,8 @@ class CreateSubmissionRequest(BaseModel):
     claimed_planting_date: date
     photo_metadata: PhotoMetadata
     photo_data_url: str | None = Field(default=None, max_length=14_000_000)
-    beneficiary: str | None = Field(default=None, pattern=r"^0x[a-fA-F0-9]{40}$")
+    beneficiary: str | None = Field(
+        default=None, pattern=r"^0x[a-fA-F0-9]{40}$")
 
 
 class ReviewRequest(BaseModel):

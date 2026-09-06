@@ -22,7 +22,8 @@ class FixedNdviProvider:
 
 def submission_payload(**photo_metadata):
     return {
-        # East Kalimantan mangrove-area coordinates used only as a stable test location.
+        # East Kalimantan mangrove-area coordinates used only as a stable test
+        # location.
         "latitude": -3.4653,
         "longitude": 114.0917,
         "claimed_planting_date": "2024-01-15",
@@ -102,4 +103,7 @@ def test_flags_photo_gps_and_timestamp_mismatches():
     body = response.json()
     assert body["score"] == 50
     assert body["confidence_band"] == "medium"
-    assert {"photo_gps_mismatch", "photo_timestamp_mismatch"}.issubset(body["flags"])
+    assert {
+        "photo_gps_mismatch",
+        "photo_timestamp_mismatch"}.issubset(
+        body["flags"])

@@ -4,7 +4,6 @@ from PIL import Image
 from fastapi.testclient import TestClient
 
 from services.ndvi_scoring.app.main import app
-from services.ndvi_scoring.app.db import SessionLocal, SubmissionModel
 from services.ndvi_scoring.app.pipeline import run_verification_pipeline
 
 
@@ -106,11 +105,14 @@ class TestBackendApiAndPipeline(unittest.TestCase):
         self.assertEqual(sub_data["ngo_id"], "NGO-BORNEO-01")
 
         # 4. Query verification details
-        ver_resp = self.client.get(f"/api/submissions/{submission_id}/verification")
+        ver_resp = self.client.get(
+            f"/api/submissions/{submission_id}/verification")
         self.assertEqual(ver_resp.status_code, 200)
         ver_data = ver_resp.json()
         self.assertEqual(ver_data["submission_id"], submission_id)
-        self.assertIn(ver_data["verification_status"], ["VERIFIED", "CREDITED", "BLOCKCHAIN_PENDING", "REJECTED"])
+        self.assertIn(
+            ver_data["verification_status"], [
+                "VERIFIED", "CREDITED", "BLOCKCHAIN_PENDING", "REJECTED"])
         self.assertIsNotNone(ver_data["score"])
         self.assertIsNotNone(ver_data["ndvi_before"])
         self.assertIsNotNone(ver_data["ndvi_after"])
@@ -120,7 +122,9 @@ class TestBackendApiAndPipeline(unittest.TestCase):
         self.assertEqual(ev_resp.status_code, 200)
         ev_data = ev_resp.json()
         self.assertEqual(ev_data["submission_id"], submission_id)
-        self.assertEqual(ev_data["project"], "East Kalimantan Mangrove Project")
+        self.assertEqual(
+            ev_data["project"],
+            "East Kalimantan Mangrove Project")
 
         # 6. Retrieve photo
         photo_resp = self.client.get(f"/api/evidence/{submission_id}/photo")
