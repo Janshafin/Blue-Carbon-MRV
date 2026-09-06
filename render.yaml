@@ -3,7 +3,7 @@ services:
   - type: web
     name: blue-carbon-mrv-api
     env: python
-    buildCommand: "pip install -r services/ndvi_scoring/requirements.txt web3 pillow"
+    buildCommand: "pip install -r services/ndvi_scoring/requirements.txt"
     startCommand: "python -m uvicorn services.ndvi_scoring.app.main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: PYTHON_VERSION
@@ -17,6 +17,14 @@ services:
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: VERIFIER_PRIVATE_KEY
+        sync: false
+      - key: PINATA_JWT
+        sync: false
+      - key: COPERNICUS_CLIENT_ID
+        sync: false
+      - key: COPERNICUS_CLIENT_SECRET
         sync: false
 
   # Frontend React Progressive Web App
