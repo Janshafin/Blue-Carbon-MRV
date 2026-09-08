@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registry — NCCR Verification Authority</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}
+
+:root {
+  --bg: #101419;
+  --surface: #0d1117;
+  --surface-2: #161b22;
+  --surface-3: #1c2025;
+  --border: #21262d;
+  --border-strong: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --faint: #484f58;
+  --blue: #1f6feb;
+  --blue-bright: #388bfd;
+  --green: #3fb950;
+  --amber: #d29922;
+  --red: #f85149;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); }
+body { font-family: Inter, Arial, sans-serif; font-size: 13px; line-height: 20px; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+.nccr-shell { min-height: 100vh; }
+.topbar {
+  height: 58px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px; border-bottom: 1px solid var(--border); background: #0b0f14;
+}
+.authority { font-family: "Libre Caslon Text", Georgia, serif; font-size: 18px; white-space: nowrap; }
+.nav { display: flex; align-items: center; gap: 24px; margin-left: auto; margin-right: 28px; height: 100%; }
+.nav a { height: 100%; display: flex; align-items: center; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .05em; }
+.nav a.active { color: var(--text); border-bottom: 2px solid var(--blue); }
+.reviewer { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.sync { color: var(--green); border: 1px solid #238636; padding: 3px 7px; border-radius: 4px; font-family: "JetBrains Mono", monospace; font-size: 10px; }
+main { max-width: 1600px; margin: 0 auto; padding: 34px 32px 56px; }
+.breadcrumb { color: var(--faint); font-size: 10px; font-weight: 600; letter-spacing: .08em; margin-bottom: 14px; }
+h1 { margin: 0; font-family: "Libre Caslon Text", Georgia, serif; font-size: 32px; line-height: 40px; font-weight: 400; letter-spacing: -.015em; }
+.subtitle { margin: 6px 0 26px; color: var(--muted); }
+
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 24px; }
+.stat { background: var(--surface); padding: 16px 18px; }
+.stat-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.stat-value { font-family: "Libre Caslon Text", Georgia, serif; font-size: 28px; margin-top: 6px; }
+.stat-sub { font-size: 11px; color: var(--muted); font-family: "JetBrains Mono", monospace; margin-top: 4px; }
+
+.table-wrap { overflow-x: auto; border-bottom: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; min-width: 900px; }
+thead th {
+  text-align: left; padding: 10px 12px; color: var(--muted); font-size: 10px; line-height: 14px;
+  letter-spacing: .06em; font-weight: 600; border-bottom: 1px solid var(--border-strong); white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid var(--border); }
+tbody tr:hover { background: var(--surface-2); }
+td { padding: 11px 12px; vertical-align: middle; }
+.id { font-family: "JetBrains Mono", monospace; font-size: 11px; }
+.parcel { color: var(--muted); font-family: "JetBrains Mono", monospace; font-size: 10px; }
+.credits { font-family: "JetBrains Mono", monospace; font-size: 12px; }
+.tx-link { color: var(--blue-bright); font-family: "JetBrains Mono", monospace; font-size: 11px; }
+.status { display: inline-block; padding: 3px 7px; border-radius: 4px; border: 1px solid; font-size: 10px; font-weight: 600; white-space: nowrap; }
+.status.provisional { color: var(--amber); border-color: #9e6a03; }
+.status.released { color: var(--green); border-color: #238636; }
+.status.disputed { color: var(--red); border-color: #da3633; }
+
+@media (max-width: 900px) {
+  .topbar { padding: 0 16px; }
+  .nav { gap: 12px; margin-right: 14px; }
+  .reviewer .sync { display:none; }
+  main { padding: 26px 16px 44px; }
+  .stats-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 680px) {
+  .nav { display:none; }
+  .authority { font-size: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="nccr-shell">
+  <header class="topbar">
+    <div class="authority">NCCR Verification Authority</div>
+    <nav class="nav" aria-label="Primary navigation">
+      <a href="submissions.html">SUBMISSIONS</a>
+      <a class="active" href="registry.html">REGISTRY</a>
+      <a href="protocols.html">PROTOCOLS</a>
+      <a href="audit-trail.html">AUDIT TRAIL</a>
+    </nav>
+    <div class="reviewer">
+      <span class="sync">● LEDGER SYNCED</span>
+      <span>Dr. A. Vance, L-4 Reviewer</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb">NCCR / VERIFICATION AUTHORITY</div>
+    <h1>Registry</h1>
+    <p class="subtitle">On-chain carbon credit records — provisional, released, and disputed.</p>
+
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-label">Total Credits Issued</div>
+        <div class="stat-value">31,400</div>
+        <div class="stat-sub">tCO2e · provisional + released</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Provisional (Locked)</div>
+        <div class="stat-value">31,400</div>
+        <div class="stat-sub">1 record · vesting in progress</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Released</div>
+        <div class="stat-value">0</div>
+        <div class="stat-sub">0 records · fully transferable</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>SUBMISSION / PARCEL</th>
+            <th>BENEFICIARY</th>
+            <th>CREDITS</th>
+            <th>STATE</th>
+            <th>TX HASH</th>
+            <th>BLOCK</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="id">NCCR-IN-2024-0819</span><br><span class="parcel">#IN-GJ-KHA-114</span></td>
+            <td class="id">0x7a3f…f9e2</td>
+            <td class="credits">31,400 tCO2e</td>
+            <td><span class="status provisional">PROVISIONAL</span></td>
+            <td><a class="tx-link" href="#" onclick="return false;">0x4e21a…c8d7</a></td>
+            <td class="credits">#5,183,204</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+</body>
+</html>

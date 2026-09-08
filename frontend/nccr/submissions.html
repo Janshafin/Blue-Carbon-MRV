@@ -1,0 +1,377 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Submissions ΓÇö NCCR Verification Authority</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}
+
+/* NCCR Submissions page */
+:root {
+  --bg: #101419;
+  --surface: #0d1117;
+  --surface-2: #161b22;
+  --surface-3: #1c2025;
+  --border: #21262d;
+  --border-strong: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --faint: #484f58;
+  --blue: #1f6feb;
+  --blue-bright: #388bfd;
+  --green: #3fb950;
+  --amber: #d29922;
+  --red: #f85149;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); }
+body {
+  font-family: Inter, Arial, sans-serif;
+  font-size: 13px;
+  line-height: 20px;
+}
+button, input { font: inherit; }
+button { cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+
+.nccr-shell { min-height: 100vh; }
+.topbar {
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  border-bottom: 1px solid var(--border);
+  background: #0b0f14;
+}
+.authority {
+  font-family: "Libre Caslon Text", Georgia, serif;
+  font-size: 18px;
+  white-space: nowrap;
+}
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-left: auto;
+  margin-right: 28px;
+  height: 100%;
+}
+.nav a {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .05em;
+}
+.nav a.active {
+  color: var(--text);
+  border-bottom: 2px solid var(--blue);
+}
+.reviewer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.sync {
+  color: var(--green);
+  border: 1px solid #238636;
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+}
+
+main { max-width: 1600px; margin: 0 auto; padding: 34px 32px 56px; }
+.breadcrumb {
+  color: var(--faint);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  margin-bottom: 14px;
+}
+h1 {
+  margin: 0;
+  font-family: "Libre Caslon Text", Georgia, serif;
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 400;
+  letter-spacing: -.015em;
+}
+.subtitle { margin: 6px 0 26px; color: var(--muted); }
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.search {
+  width: min(460px, 100%);
+  height: 36px;
+  background: #04070a;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0 11px;
+  border-radius: 4px;
+  outline: none;
+}
+.search:focus { border-color: var(--blue-bright); }
+.export {
+  height: 36px;
+  background: #0d1117;
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  padding: 0 13px;
+  border-radius: 4px;
+}
+.export:hover { background: var(--surface-2); }
+
+.filters {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+  margin-bottom: 0;
+}
+.filter {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  padding: 6px 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.filter.active { border-color: var(--blue); color: var(--blue-bright); background: #0d1117; }
+
+.table-wrap {
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+}
+table { width: 100%; border-collapse: collapse; min-width: 980px; }
+thead th {
+  text-align: left;
+  padding: 10px 12px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: .06em;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-strong);
+  white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid var(--border); }
+tbody tr:hover { background: var(--surface-2); }
+td { padding: 11px 12px; vertical-align: middle; }
+.evidence {
+  width: 68px;
+  height: 48px;
+  object-fit: cover;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  display: block;
+}
+.id { font-family: "JetBrains Mono", monospace; font-size: 11px; }
+.parcel { color: var(--muted); font-family: "JetBrains Mono", monospace; font-size: 10px; }
+.location { max-width: 270px; }
+.location strong { display: block; font-weight: 500; }
+.coords { color: var(--muted); font-family: "JetBrains Mono", monospace; font-size: 10px; }
+.date { white-space: nowrap; color: var(--muted); font-size: 11px; }
+.status {
+  display: inline-block;
+  padding: 3px 7px;
+  border-radius: 4px;
+  border: 1px solid;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.status.pending { color: var(--amber); border-color: #9e6a03; }
+.status.approved { color: var(--green); border-color: #238636; }
+.status.rejected { color: var(--red); border-color: #da3633; }
+.review {
+  background: var(--blue);
+  border: 1px solid var(--blue-bright);
+  color: #fff;
+  border-radius: 4px;
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.review:hover { background: var(--blue-bright); }
+
+.empty { display:none; padding: 32px; color: var(--muted); text-align:center; border-bottom:1px solid var(--border); }
+
+@media (max-width: 900px) {
+  .topbar { padding: 0 16px; }
+  .nav { gap: 12px; margin-right: 14px; }
+  .reviewer .sync { display:none; }
+  main { padding: 26px 16px 44px; }
+}
+@media (max-width: 680px) {
+  .nav { display:none; }
+  .authority { font-size: 16px; }
+  .toolbar { align-items: stretch; flex-direction: column; }
+  .search { width: 100%; }
+}
+</style>
+</head>
+<body>
+<div class="nccr-shell">
+  <header class="topbar">
+    <div class="authority">NCCR Verification Authority</div>
+    <nav class="nav" aria-label="Primary navigation">
+      <a class="active" href="submissions.html">SUBMISSIONS</a>
+      <a href="registry.html">REGISTRY</a>
+      <a href="protocols.html">PROTOCOLS</a>
+      <a href="audit-trail.html">AUDIT TRAIL</a>
+    </nav>
+    <div class="reviewer">
+      <span class="sync">ΓùÅ LEDGER SYNCED</span>
+      <span>Dr. A. Vance, L-4 Reviewer</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb">NCCR / VERIFICATION AUTHORITY</div>
+    <h1>Submissions</h1>
+    <p class="subtitle">Review plantation submissions and verification evidence.</p>
+
+    <div class="toolbar">
+      <input id="search" class="search" type="search" placeholder="Search submission ID, parcel or coordinatesΓÇª" aria-label="Search submissions">
+      <button class="export" type="button" onclick="exportCSV()">Export CSV</button>
+    </div>
+
+    <div class="filters" role="tablist" aria-label="Submission status filters">
+      <button class="filter active" data-filter="all">All (4)</button>
+      <button class="filter" data-filter="pending">Pending Review (2)</button>
+      <button class="filter" data-filter="approved">Approved (1)</button>
+      <button class="filter" data-filter="rejected">Rejected (1)</button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="submissionTable">
+        <thead>
+          <tr>
+            <th>EVIDENCE</th>
+            <th>SUBMISSION / PARCEL</th>
+            <th>PLANTATION / LOCATION</th>
+            <th>SUBMITTED</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-status="pending">
+            <td><img class="evidence" src="https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=180&q=80" alt="Mangrove vegetation evidence"></td>
+            <td><span class="id">NCCR-IN-2024-0842</span><br><span class="parcel">#IN-WB-SUN-418</span></td>
+            <td class="location"><strong>Sundarbans Coastal Mangrove Belt</strong><span class="coords">21.948┬░ N, 88.892┬░ E</span></td>
+            <td class="date">14 Oct 2024<br>11:42 UTC</td>
+            <td><span class="status pending">PENDING REVIEW</span></td>
+            <td><button class="review" onclick="openReview('NCCR-IN-2024-0842')">Review</button></td>
+          </tr>
+          <tr data-status="pending">
+            <td><img class="evidence" src="https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=180&q=80" alt="Coastal plantation evidence"></td>
+            <td><span class="id">NCCR-IN-2024-0837</span><br><span class="parcel">#IN-OD-BHC-207</span></td>
+            <td class="location"><strong>Bhitarakanika Restoration Zone</strong><span class="coords">20.705┬░ N, 86.885┬░ E</span></td>
+            <td class="date">12 Oct 2024<br>09:18 UTC</td>
+            <td><span class="status pending">PENDING REVIEW</span></td>
+            <td><button class="review" onclick="openReview('NCCR-IN-2024-0837')">Review</button></td>
+          </tr>
+          <tr data-status="approved">
+            <td><img class="evidence" src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=180&q=80" alt="Verified plantation evidence"></td>
+            <td><span class="id">NCCR-IN-2024-0819</span><br><span class="parcel">#IN-GJ-KHA-114</span></td>
+            <td class="location"><strong>Khambhat Coastal Restoration Plot</strong><span class="coords">22.318┬░ N, 72.619┬░ E</span></td>
+            <td class="date">06 Oct 2024<br>15:07 UTC</td>
+            <td><span class="status approved">APPROVED</span></td>
+            <td><button class="review" onclick="openReview('NCCR-IN-2024-0819')">Review</button></td>
+          </tr>
+          <tr data-status="rejected">
+            <td><img class="evidence" src="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=180&q=80" alt="Rejected plantation evidence"></td>
+            <td><span class="id">NCCR-IN-2024-0804</span><br><span class="parcel">#IN-KL-VEM-091</span></td>
+            <td class="location"><strong>Vembanad Coastal Plantation</strong><span class="coords">9.540┬░ N, 76.399┬░ E</span></td>
+            <td class="date">29 Sep 2024<br>08:33 UTC</td>
+            <td><span class="status rejected">REJECTED</span></td>
+            <td><button class="review" onclick="openReview('NCCR-IN-2024-0804')">Review</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div id="empty" class="empty">No submissions match the current filter.</div>
+    </div>
+  </main>
+</div>
+
+<script>
+const reviewTarget = "code.html";
+
+function openReview(id) {
+  // The current Stitch export is a single Review page. Preserve the selected
+  // submission in the URL so it can be used when the review page is wired to real data.
+  window.location.href = reviewTarget + "?submission=" + encodeURIComponent(id);
+}
+
+function updateRows() {
+  const query = document.getElementById("search").value.toLowerCase().trim();
+  const active = document.querySelector(".filter.active").dataset.filter;
+  const rows = [...document.querySelectorAll("#submissionTable tbody tr")];
+  let visible = 0;
+  rows.forEach(row => {
+    const matchesFilter = active === "all" || row.dataset.status === active;
+    const matchesSearch = !query || row.innerText.toLowerCase().includes(query);
+    row.style.display = matchesFilter && matchesSearch ? "" : "none";
+    if (matchesFilter && matchesSearch) visible++;
+  });
+  document.getElementById("empty").style.display = visible ? "none" : "block";
+}
+
+document.querySelectorAll(".filter").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".filter").forEach(b => b.classList.remove("active"));
+    button.classList.add("active");
+    updateRows();
+  });
+});
+document.getElementById("search").addEventListener("input", updateRows);
+
+function exportCSV() {
+  const rows = [...document.querySelectorAll("#submissionTable tbody tr")].filter(r => r.style.display !== "none");
+  const csv = [
+    ["Submission ID","Parcel","Location","Coordinates","Submitted","Status"],
+    ...rows.map(r => {
+      const cells = r.children;
+      return [
+        cells[1].querySelector(".id").innerText,
+        cells[1].querySelector(".parcel").innerText,
+        cells[2].querySelector("strong").innerText,
+        cells[2].querySelector(".coords").innerText,
+        cells[3].innerText.replace(/\n/g, " "),
+        cells[4].innerText
+      ];
+    })
+  ].map(row => row.map(v => '"' + v.replace(/"/g, '""') + '"').join(",")).join("\n");
+
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "nccr-submissions.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
+
