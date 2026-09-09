@@ -25,7 +25,7 @@ function submissionId(): `0x${string}` {
 async function main() {
   const contractAddress = address;
   if (!contractAddress) throw new Error("BLUE_CARBON_CREDIT_ADDRESS is required");
-  const conn = await hre.network.getOrCreate("default");
+  const conn = await hre.network.connect();
   const contract = await conn.viem.getContractAt("BlueCarbonCredit", contractAddress);
   let hash: `0x${string}`;
 
