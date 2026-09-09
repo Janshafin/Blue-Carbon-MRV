@@ -1,6 +1,6 @@
 # Core Engine: scoring-to-registry integration
 
-This document is the hand-off contract for Jan and Arlin. The FastAPI scoring service and Sepolia contract are intentionally separate: the backend evaluates an off-chain score, retains the evidence, then submits the appropriate role-gated contract transaction. It must not use the score alone as evidence of carbon sequestration or automate an irreversible decision without the project's governance review.
+This document is the hand-off contract for Jan , Gillian and Arlin. The FastAPI scoring service and Sepolia contract are intentionally separate: the backend evaluates an off-chain score, retains the evidence, then submits the appropriate role-gated contract transaction. It must not use the score alone as evidence of carbon sequestration or automate an irreversible decision without the project's governance review.
 
 ## Deployed contract
 

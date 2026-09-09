@@ -1,116 +1,156 @@
-# 🌊 Blue Carbon MRV — Blockchain Registry & Verification
+# Blue Carbon MRV — Complete End-to-End System
 
-A **Blockchain-Based Blue Carbon Credit Registry** with AI-driven NDVI plausibility scoring, built for transparent and auditable carbon credit lifecycle management.
+Blockchain-Based Blue Carbon Registry &amp; Measurement, Reporting, and Verification (MRV) System for mangrove restoration.
 
-## Architecture
+---
 
-```mermaid
-graph TD
-    subgraph Core Engine
-        SC["BlueCarbonCredit.sol<br/>(ERC-20 + AccessControl)"]
-        AI["NDVI Plausibility Scorer<br/>(Part 2 — AI Service)"]
-    end
+## 🌊 Pipeline Architecture
 
-    subgraph Sub-Teams
-        MOB["Mobile App"]
-        DASH["Admin Dashboard"]
-        BACK["Backend / Infra"]
-    end
-
-    MOB -->|"submits plantation data"| BACK
-    BACK -->|"calls registerSubmission()"| SC
-    AI -->|"verifies NDVI score"| BACK
-    SC -->|"emits events"| DASH
-    DASH -->|"reads on-chain state"| SC
+```
+USER
+  ↓
+React PWA Frontend (Vite + TypeScript)
+  ↓
+Submission API (POST /api/submissions with multipart/form-data)
+  ↓
+Photo + GPS + Planting Metadata + Beneficiary Wallet
+  ↓
+Database Persistence (SQLite + SQLAlchemy non-volatile storage)
+  ↓
+Photo Storage (Collision-safe filename, path-traversal protection, EXIF extraction)
+  ↓
+Satellite Imagery API (Copernicus Sentinel-2 CDSE / Deterministic MOCK_NDVI)
+  ↓
+NDVI Vegetation Analysis (Planting window baseline vs Recent monitoring window)
+  ↓
+MRV Scoring Engine (Vegetation change + EXIF location/timestamp consistency checks)
+  ↓
+Eligibility Decision (Score >= 75, High Confidence, 0 Flags)
+  ↓
+Blockchain Registry Transaction (Web3.py verifier signing)
+  ↓
+Ethereum Sepolia Testnet (BlueCarbonCredit Contract: 0x815F9122D29471e161D66068Eef9a508EC079442)
+  ↓
+Transaction Hash & Verification Result
+  ↓
+Live Registry UI (GET /api/registry)
 ```
 
-## Credit Lifecycle
+---
 
-```mermaid
-stateDiagram-v2
-    [*] --> Registered : registerSubmission()
-    Registered --> Provisional : auto-mint on register
-    Provisional --> Released : releaseCredits() after vesting
-    Provisional --> Disputed : disputeSubmission()
-    Disputed --> Provisional : resolveDispute(approve)
-    Disputed --> Rejected : resolveDispute(reject) → burn
-    Released --> [*] : fully tradeable
-    Rejected --> [*] : credits burned
-```
+## 🚀 Quick Start Guide
 
-## Quick Start
+### 1. Prerequisites
+- **Node.js**: v18+ (tested on v22)
+- **Python**: 3.10+ (tested on 3.12)
+- **npm** or **pnpm**
 
-### Prerequisites
-- Node.js ≥ 22.13.0
-- Python 3.10+ (for Slither security analysis)
-- A Sepolia testnet wallet with ETH ([faucet](https://sepoliafaucet.com/))
-
-### Setup
+### 2. Environment Setup
+Copy the example environment configuration:
 ```bash
-# 1. Clone and enter the project
-git clone https://github.com/Janshafin/Blue-Carbon-MRV.git
-cd Blue-Carbon-MRV
-git checkout core-engine
-
-# 2. Install dependencies
-npm install
-
-# 3. Set up environment variables
 cp .env.example .env
-# Edit .env with your real keys
-
-# 4. Compile contracts
-npx hardhat compile
-
-# 5. Run tests
-npx hardhat test
-
-# 6. Deploy to Sepolia (with Etherscan verification)
-npx hardhat ignition deploy ignition/modules/BlueCarbonCredit.ts --network sepolia --verify
 ```
 
-### Phase 2: NDVI plausibility service
+Default local development settings in `.env`:
+```ini
+MOCK_NDVI=true
+VITE_API_URL=http://localhost:8000
+DATABASE_URL=sqlite:///data/blue_carbon.db
+SEPOLIA_RPC_URL=https://rpc.sepolia.org
+CONTRACT_ADDRESS=0x815F9122D29471e161D66068Eef9a508EC079442
+```
 
-The FastAPI service for Sentinel-2 NDVI and photo-EXIF checks lives in [services/ndvi_scoring](services/ndvi_scoring/README.md). Its provisional request/response contract is available through FastAPI OpenAPI at `/docs` and `/openapi.json` when running locally.
+### 3. Install Dependencies
 
-### Security Scan
+#### Backend (Python):
 ```bash
-pip3 install slither-analyzer solc-select
-solc-select install 0.8.28 && solc-select use 0.8.28
-slither .
+python -m pip install -r services/ndvi_scoring/requirements.txt
+python -m pip install web3 pillow
 ```
 
-## Contract Interface (for Sub-Teams)
-
-### Roles
-| Role | Bytes32 | Who |
-|------|---------|-----|
-| `DEFAULT_ADMIN_ROLE` | `0x00` | Deployer — grants/revokes roles |
-| `VERIFIER_ROLE` | `keccak256("VERIFIER_ROLE")` | NCCR verifiers |
-| `DISPUTER_ROLE` | `keccak256("DISPUTER_ROLE")` | Auditors / NGOs / citizens |
-
-### Key Functions
-| Function | Access | Description |
-|----------|--------|-------------|
-| `registerSubmission(submissionId, metadataURI, beneficiary, creditAmount)` | VERIFIER | Register plantation + mint provisional tokens |
-| `releaseCredits(submissionId)` | VERIFIER | Release tokens after vesting + re-verification |
-| `disputeSubmission(submissionId, reason)` | DISPUTER | Flag a submission before release |
-| `resolveDispute(submissionId, approved)` | VERIFIER | Approve → resume, Reject → burn |
-| `getSubmission(submissionId)` | Public | Read submission state |
-
-### Events (for Dashboard)
-```solidity
-event SubmissionRegistered(bytes32 indexed submissionId, address indexed beneficiary, uint256 creditAmount);
-event CreditProvisional(bytes32 indexed submissionId, address indexed beneficiary, uint256 amount);
-event CreditReleased(bytes32 indexed submissionId, address indexed beneficiary, uint256 amount);
-event SubmissionDisputed(bytes32 indexed submissionId, address indexed disputedBy, string reason);
-event DisputeResolved(bytes32 indexed submissionId, bool approved, address indexed resolvedBy);
+#### Frontend (Node):
+```bash
+npm install
 ```
 
-## Git Workflow
-- **`main`** — stable, release-ready (merge via PR only)
-- **`core-engine`** — integration branch for Core Engine team
-- **`feature/core-engine-*`** — feature branches off `core-engine`
+### 4. Running Locally
 
-## License
-MIT
+#### Terminal 1 — Start FastAPI Backend:
+```bash
+python -m uvicorn services.ndvi_scoring.app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+- API root: `http://localhost:8000`
+- Interactive OpenAPI Docs: `http://localhost:8000/docs`
+- Health check: `http://localhost:8000/api/health`
+
+#### Terminal 2 — Start Vite React Frontend:
+```bash
+npm run dev
+```
+- Frontend: `http://localhost:5173`
+- Live Registry: `http://localhost:5173/registry`
+- Field Submission: `http://localhost:5173/submit`
+
+---
+
+## 📡 API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/submissions` | Multipart form submission (photo, latitude, longitude, planting_date, species, ngo_id, wallet_address) |
+| `GET` | `/api/submissions/{id}` | Complete state of a submission including verification and blockchain status |
+| `GET` | `/api/submissions/{id}/verification` | Verification status, NDVI before/after/change, score, confidence, flags, blockchain status, tx hash |
+| `GET` | `/api/registry` | Verified and provisionally credited projects for the live registry UI |
+| `GET` | `/api/evidence/{id}` | Deterministic public evidence metadata JSON (no private paths) |
+| `GET` | `/api/evidence/{id}/photo` | Secure photo retrieval with path-traversal protection |
+| `GET` | `/api/evidence/{id}/satellite/{period}` | Secure before/after Sentinel-2 satellite imagery raster |
+| `GET` | `/api/health` | Service health, database status, satellite mode, and blockchain verifier configuration |
+| `POST` | `/score-submission` | Backward-compatible direct NDVI scoring endpoint |
+
+---
+
+## 🛰️ Satellite Engine & MOCK_NDVI Modes
+
+### Mode 1: Development / Hackathon Mode (`MOCK_NDVI=true`)
+When `MOCK_NDVI=true`, the engine simulates deterministic, realistic Sentinel-2 vegetation indices:
+- Baseline NDVI (~0.18 - 0.25) during planting window
+- Restored canopy NDVI (~0.52 - 0.65) during recent monitoring window
+- Explicitly labels data with `is_simulated: true` so mock data is never misrepresented as real telemetry.
+
+### Mode 2: Live Copernicus CDSE Mode (`MOCK_NDVI=false`)
+When `MOCK_NDVI=false`, the engine queries the Copernicus Data Space Ecosystem Sentinel-2 L2A archive:
+- Requires `COPERNICUS_CLIENT_ID` and `COPERNICUS_CLIENT_SECRET`.
+- Multi-spectral evaluation script calculates:
+  $$NDVI = \frac{B08 - B04}{B08 + B04}$$
+- Filters out cloud cover and missing pixels.
+- Gracefully reports provider errors without crashing the service.
+
+---
+
+## ⛓️ Smart Contract & Sepolia Integration
+
+- **Contract Name**: `BlueCarbonCredit` (ERC-20 + AccessControl)
+- **Token**: `BCC` (18 decimals)
+- **Network**: Ethereum Sepolia Testnet
+- **Deployed Address**: [`0x815F9122D29471e161D66068Eef9a508EC079442`](https://eth-sepolia.blockscout.com/address/0x815F9122D29471e161D66068Eef9a508EC079442#code)
+- **Lifecycle**: `Registered` → `Provisional` (locked vesting) → `Released` (tradeable) / `Disputed`
+- **Security**: The backend securely signs role-gated transactions server-side using `VERIFIER_PRIVATE_KEY`. Private keys are **never** sent to or exposed in the frontend.
+
+---
+
+## 🧪 Testing
+
+Run backend unit and integration tests:
+```bash
+python -m pytest services/ndvi_scoring/tests
+```
+
+Build and validate the frontend bundle:
+```bash
+npm run build
+```
+
+Run smart contract test suite:
+```bash
+npx hardhat test
+```

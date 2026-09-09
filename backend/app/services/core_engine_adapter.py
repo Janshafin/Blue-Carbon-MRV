@@ -23,7 +23,14 @@ class CoreEngineAdapter:
         self,
         submission: CreateSubmissionRequest,
     ) -> dict:
-        payload = submission.model_dump(mode="json")
+        # The scoring service accepts only geospatial/EXIF evidence. Keep
+        # project and persistence fields out of this strict request contract.
+        payload = {
+            "latitude": submission.latitude,
+            "longitude": submission.longitude,
+            "claimed_planting_date": submission.claimed_planting_date.isoformat(),
+            "photo_metadata": submission.photo_metadata.model_dump(mode="json"),
+        }
 
         try:
             async with httpx.AsyncClient(timeout=60.0) as client:

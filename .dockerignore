@@ -1,0 +1,40 @@
+# Version control
+.git
+.gitignore
+
+# Environment & Secrets (NEVER commit/copy secrets into Docker image)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Python bytecode & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+env/
+test_clean_venv/
+
+# Node & Frontend build artifacts
+node_modules/
+dist/
+dist-ssr/
+dev-dist/
+*.tsbuildinfo
+
+# Local database files & uploaded runtime state
+data/*.db
+storage/photos/*
+storage/evidence/*
+!storage/photos/.gitkeep
+!storage/evidence/.gitkeep
+
+# IDE / Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log

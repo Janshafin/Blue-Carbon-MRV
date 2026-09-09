@@ -42,12 +42,17 @@ class ScoreSubmissionRequest(BaseModel):
     longitude: float = Field(ge=-180, le=180, examples=[114.0917])
     claimed_planting_date: date = Field(examples=["2024-01-15"])
     photo_metadata: PhotoMetadata = Field(
-        description="GPS and timestamp decoded from the submission photo's EXIF metadata."
+        description=(
+            "GPS and timestamp decoded from the submission photo's EXIF metadata."
+        )
     )
 
 
 class ScoreSubmissionResponse(BaseModel):
-    score: int = Field(ge=0, le=100, description="Explainable NDVI/EXIF plausibility score.")
+    score: int = Field(
+        ge=0,
+        le=100,
+        description="Explainable NDVI/EXIF plausibility score.")
     confidence_band: Literal["low", "medium", "high"]
     flags: list[str] = Field(default_factory=list)
     ndvi_before: float | None = Field(

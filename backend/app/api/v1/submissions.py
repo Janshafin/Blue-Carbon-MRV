@@ -3,11 +3,20 @@ import os
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
 
-from backend.app.schemas.submissions import CreateSubmissionRequest, PhotoMetadata
-from backend.app.services.core_engine_adapter import CoreEngineAdapter, CoreEngineError
+from backend.app.schemas.submissions import (
+    CreateSubmissionRequest,
+    ReviewRequest,
+    PhotoMetadata,
+)
+from backend.app.services.core_engine_adapter import (
+    CoreEngineAdapter,
+    CoreEngineError,
+)
 from backend.app.services.pinata_service import PinataError, upload_file
-from backend.app.services.submission_service import SubmissionService
-
+from backend.app.services.submission_service import (
+    SubmissionService,
+    SubmissionServiceError,
+)
 
 router = APIRouter(
     prefix="/submissions",
@@ -67,7 +76,7 @@ async def create_submission(
             evidence_uri=evidence_uri,
         )
 
-    except (PinataError, ValueError) as error:
+    except (PinataError, ValueError, SubmissionServiceError) as error:
         raise HTTPException(
             status_code=400,
             detail=str(error),
@@ -78,6 +87,7 @@ async def create_submission(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=str(error),
         ) from error
+
 @router.get("/count")
 async def get_submission_count():
     try:
@@ -96,4 +106,53 @@ async def get_submission_count():
         raise HTTPException(
             status_code=500,
             detail=f"Failed to get submission count: {error}",
+        ) from error
+
+
+@router.get("")
+async def list_submissions():
+    try:
+        return await submission_service.list_submissions()
+
+    except SubmissionServiceError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(error),
+        ) from error
+
+
+@router.get("/queue")
+async def review_queue():
+    return await list_submissions()
+
+
+@router.get("/activity")
+async def activity(limit: int = 20):
+    try:
+        return await submission_service.list_activity(
+            min(max(limit, 1), 100)
+        )
+
+    except SubmissionServiceError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(error),
+        ) from error
+
+
+@router.post("/{submission_id}/review")
+async def review_submission(
+    submission_id: str,
+    review: ReviewRequest,
+):
+    try:
+        return await submission_service.review(
+            submission_id,
+            review,
+        )
+
+    except SubmissionServiceError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(error),
         ) from error

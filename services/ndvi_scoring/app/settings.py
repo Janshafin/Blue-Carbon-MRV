@@ -29,4 +29,5 @@ class Settings:
             raise SentinelHubConfigurationError(
                 "COPERNICUS_CLIENT_ID and COPERNICUS_CLIENT_SECRET must be set"
             )
-        return cls(copernicus_client_id=client_id, copernicus_client_secret=client_secret)
+        return cls(copernicus_client_id=client_id,
+                   copernicus_client_secret=client_secret)
