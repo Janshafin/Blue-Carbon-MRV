@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode, type RefObject } from "rea
 import heroImage from "./assets/hero-mangrove.jpg";
 import NCCRRegistryConsole from "./NCCRRegistryConsole";
 import SubmissionPage from "./pages/SubmissionPage";
-
+import NccrApprovalDashboard from "./pages/NccrApprovalDashboard";
 type IconName = "pin" | "satellite" | "lock" | "check" | "shield" | "ledger";
 
 function useReveal(): RefObject<HTMLElement | null> {

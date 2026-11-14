@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protocols — NCCR Verification Authority</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}
+
+:root {
+  --bg: #101419;
+  --surface: #0d1117;
+  --surface-2: #161b22;
+  --surface-3: #1c2025;
+  --border: #21262d;
+  --border-strong: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --faint: #484f58;
+  --blue: #1f6feb;
+  --blue-bright: #388bfd;
+  --green: #3fb950;
+  --amber: #d29922;
+  --red: #f85149;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); }
+body { font-family: Inter, Arial, sans-serif; font-size: 13px; line-height: 20px; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+.nccr-shell { min-height: 100vh; }
+.topbar {
+  height: 58px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px; border-bottom: 1px solid var(--border); background: #0b0f14;
+}
+.authority { font-family: "Libre Caslon Text", Georgia, serif; font-size: 18px; white-space: nowrap; }
+.nav { display: flex; align-items: center; gap: 24px; margin-left: auto; margin-right: 28px; height: 100%; }
+.nav a { height: 100%; display: flex; align-items: center; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .05em; }
+.nav a.active { color: var(--text); border-bottom: 2px solid var(--blue); }
+.reviewer { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.sync { color: var(--green); border: 1px solid #238636; padding: 3px 7px; border-radius: 4px; font-family: "JetBrains Mono", monospace; font-size: 10px; }
+main { max-width: 1600px; margin: 0 auto; padding: 34px 32px 56px; }
+.breadcrumb { color: var(--faint); font-size: 10px; font-weight: 600; letter-spacing: .08em; margin-bottom: 14px; }
+h1 { margin: 0; font-family: "Libre Caslon Text", Georgia, serif; font-size: 32px; line-height: 40px; font-weight: 400; letter-spacing: -.015em; }
+.subtitle { margin: 6px 0 26px; color: var(--muted); }
+
+.protocol-grid { display: flex; flex-direction: column; gap: 14px; }
+.protocol-card { border: 1px solid var(--border); background: var(--surface-2); border-radius: 6px; padding: 18px 20px; }
+.protocol-card h2 { margin: 0 0 4px; font-family: "Libre Caslon Text", Georgia, serif; font-size: 18px; font-weight: 400; }
+.protocol-meta { font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--muted); margin-bottom: 10px; }
+.protocol-desc { color: var(--text); margin-bottom: 12px; }
+.protocol-rules { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+.protocol-rules li { border: 1px solid var(--border); border-radius: 4px; padding: 8px 10px; font-size: 12px; color: var(--muted); }
+.protocol-rules li b { color: var(--text); display: block; font-size: 12.5px; margin-bottom: 2px; }
+.tag { display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 2px 6px; border-radius: 3px; margin-left: 8px; }
+.tag-active { color: var(--green); border: 1px solid #238636; }
+
+@media (max-width: 900px) {
+  .topbar { padding: 0 16px; }
+  .nav { gap: 12px; margin-right: 14px; }
+  .reviewer .sync { display:none; }
+  main { padding: 26px 16px 44px; }
+}
+@media (max-width: 680px) {
+  .nav { display:none; }
+  .authority { font-size: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="nccr-shell">
+  <header class="topbar">
+    <div class="authority">NCCR Verification Authority</div>
+    <nav class="nav" aria-label="Primary navigation">
+      <a href="submissions.html">SUBMISSIONS</a>
+      <a href="registry.html">REGISTRY</a>
+      <a class="active" href="protocols.html">PROTOCOLS</a>
+      <a href="audit-trail.html">AUDIT TRAIL</a>
+    </nav>
+    <div class="reviewer">
+      <span class="sync">● LEDGER SYNCED</span>
+      <span>Dr. A. Vance, L-4 Reviewer</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb">NCCR / VERIFICATION AUTHORITY</div>
+    <h1>Protocols</h1>
+    <p class="subtitle">Methodologies and scoring rules governing submission eligibility.</p>
+
+    <div class="protocol-grid">
+      <div class="protocol-card">
+        <h2>AR-ACM0003 — Coastal Blue Carbon <span class="tag tag-active">ACTIVE</span></h2>
+        <div class="protocol-meta">Sentinel-2 Multi-Spectral · 10m Spatial Resolution</div>
+        <p class="protocol-desc">Afforestation/reforestation methodology applied to coastal mangrove restoration. Vegetation change is assessed via NDVI comparison between a claimed planting-date baseline and a recent monitoring window.</p>
+        <ul class="protocol-rules">
+          <li><b>Eligibility threshold</b>Score ≥ 75, confidence band "high", zero flags</li>
+          <li><b>NDVI formula</b>(B08 − B04) / (B08 + B04)</li>
+          <li><b>Monitoring window</b>Recent 30-day Sentinel-2 window</li>
+          <li><b>Photo GPS mismatch</b>&gt;1km from claimed location → −25</li>
+          <li><b>Photo timestamp mismatch</b>&gt;45 days from planting date → −15</li>
+          <li><b>Low current vegetation</b>Capped score of 20</li>
+        </ul>
+      </div>
+
+      <div class="protocol-card">
+        <h2>Provisional Credit Lifecycle</h2>
+        <div class="protocol-meta">BlueCarbonCredit.sol · Ethereum Sepolia</div>
+        <p class="protocol-desc">Governs how a verified submission becomes a locked, then transferable, carbon credit.</p>
+        <ul class="protocol-rules">
+          <li><b>Vesting period</b>Demo default: 10 minutes (production target: 6–24 months)</li>
+          <li><b>Release condition</b>Vesting elapsed + clean re-verification + verifier approval</li>
+          <li><b>Dispute resolution</b>Disputer flags → Verifier restores or rejects</li>
+          <li><b>Rejection outcome</b>Locked credits burned, submission closed</li>
+        </ul>
+      </div>
+
+      <div class="protocol-card">
+        <h2>Evidence Requirements</h2>
+        <div class="protocol-meta">Off-chain verification inputs</div>
+        <p class="protocol-desc">Minimum evidence a submission must include before scoring is attempted.</p>
+        <ul class="protocol-rules">
+          <li><b>Location</b>Latitude / longitude within valid range</li>
+          <li><b>Field photo</b>With embedded EXIF GPS and timestamp</li>
+          <li><b>Claimed planting date</b>ISO 8601 format</li>
+          <li><b>Beneficiary wallet</b>Valid 0x + 40 hex character address</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

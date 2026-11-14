@@ -15,10 +15,10 @@ export default defineConfig({
   plugins: [hardhatToolboxViem],
   networks: {
     sepolia: {
-      type: "http",
-      url: process.env.SEPOLIA_RPC_URL || "https://rpc.sepolia.org",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-    },
+ 	 type: "http",
+  	 url: process.env.SEPOLIA_RPC_URL || "",
+ 	 accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+},
   },
   verify: {
     etherscan: {

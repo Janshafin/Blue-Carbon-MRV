@@ -43,3 +43,6 @@ storage/evidence/*
 !data/.gitkeep
 !storage/photos/.gitkeep
 !storage/evidence/.gitkeep
+
+artifacts/
+cache/
